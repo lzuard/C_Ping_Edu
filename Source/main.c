@@ -1,5 +1,16 @@
+//Main project file, start and execution point
+
+//C headers
 #include <stdio.h>
-#include "../Headers/console.h"
+
+//Local project headers
+#include "../Headers/settings.h"
+
+//Variables
+char input[STR_SIZE];
+
+
+
 
 int main() {
     io_welcome();

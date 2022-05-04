@@ -60,7 +60,7 @@ int nw_get_host(char *host, struct sockaddr_in *dest_addr){
     return 0;
 }
 
-int nw_setup(struct ICMPHeader *icmpHeader,  struct WSAData *wsaData, SOCKET *socket){
+int nw_setup(struct ICMPHeader *icmpHeader,  struct WSAData *wsaData, SOCKET* socket){
     icmpHeader->code = 0;
     icmpHeader->type = ICMP_ECHO_REQUEST;
     icmpHeader->code = 0;
@@ -90,16 +90,20 @@ int nw_setup(struct ICMPHeader *icmpHeader,  struct WSAData *wsaData, SOCKET *so
     }
 }
 
-int nw_send_request(SOCKET socket, const struct sockaddr_in *dest_addr, struct ICMPHeader *send_buf, int packet_size){
-    int bwrote = sendto(socket, (char *)send_buf, packet_size, 0,(struct sockaddr *)dest_addr, sizeof(*dest_addr));
+int nw_send_request(SOCKET* socket, const struct sockaddr_in *dest_addr, struct ICMPHeader *send_buf, int packet_size){
+    int bwrote = sendto(*socket, (char *)send_buf, packet_size, 0,(struct sockaddr *)dest_addr, sizeof(*dest_addr));
     if (bwrote == SOCKET_ERROR){
-        //printf("Send failed: %d\n", WSAGetLastError()); //TODO: io
+        printf("Send failed: %d\n", WSAGetLastError()); //TODO: io
         return 1;
+    }
+    else if (bwrote < packet_size)
+    {
+        printf("Sent %d bytes...", bwrote);
     }
     return 0;
 }
 
-int nw_get_reply(SOCKET socket, struct sockaddr_in *source_addr, struct IPHeader *recv_buf, int packet_size, ULONG start_time_ms){
+int nw_get_reply(SOCKET* socket, struct sockaddr_in *source_addr, struct IPHeader *recv_buf, int packet_size, ULONG start_time_ms){
     struct timeval timeval;
     timeval.tv_sec = 1;
     timeval.tv_usec = (1000 % 1000) * 1000;
@@ -111,23 +115,27 @@ int nw_get_reply(SOCKET socket, struct sockaddr_in *source_addr, struct IPHeader
         //socket descriptor for select
         fd_set socket_fd;
         FD_ZERO(&socket_fd);
-        FD_SET(socket, &socket_fd);
+        FD_SET(*socket, &socket_fd);
 
         //wait for reply
-        int wait_result = select(socket + 1, &socket_fd, 0, 0, &timeval);
+        int wait_result = select(*socket + 1, &socket_fd, 0, 0, &timeval);
         switch (wait_result) {
             case 0:
                 return 1; //timeout
+                printf("hello");
+                break;
             case -1:
                 return 2; //select error
+                printf("2");
+                break;
             default:
-                switch (recvfrom(socket, (char *) recv_buf, packet_size + sizeof(struct IPHeader), 0,
+                switch (recvfrom(*socket, (char *) recv_buf, packet_size + sizeof(struct IPHeader), 0,
                                  (struct sockaddr *) source_addr, &fromlen)) { // read reply
                     case SOCKET_ERROR:
                         if (WSAGetLastError() == WSAEMSGSIZE) {
-                            //printf("buffer too small\n"); //TODO: error handle
+                            printf("buffer too small\n"); //TODO: error handle
                         } else {
-                            //printf("Error #%d\n", WSAGetLastError());
+                            printf("Error #%d\n", WSAGetLastError());
                         }
                         return 3;
                     default:
@@ -168,4 +176,5 @@ int nw_get_reply(SOCKET socket, struct sockaddr_in *source_addr, struct IPHeader
         }
     }
 }
+
 

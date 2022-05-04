@@ -32,7 +32,7 @@ int main(int argc, char *argv[]){
     int packets_sent=0;
     int result =-1;
     io_welcome();
-    char input[]="192.168.0.1"; //TODO:debug
+    char input[]="64.233.161.139"; //TODO:debug
     //io_get_input(input); //TODO:debug
 
     int packet_size = DEFAULT_PACKET_SIZE;
@@ -48,17 +48,16 @@ int main(int argc, char *argv[]){
 
     struct sockaddr_in dest_addr;
     struct sockaddr_in source_addr;
-
-    switch(nw_get_host(input,&dest_addr)){ //get host address
+    switch(nw_setup(&send_buf,&wsaData,&socket)){ // setup socket and things
         case 1:
-            printf("error on host recognition\n"); //TODO: error handle
+            printf("error on network set up\n"); //TODO: error handle
             break;
         case 0:
 
 
-            switch(nw_setup(&send_buf,&wsaData,&socket)){ // setup socket and things
+            switch(nw_get_host(input,&dest_addr)){ //get host address
                 case 1:
-                    printf("error on network set up\n"); //TODO: error handle
+                    printf("error on host recognition\n"); //TODO: error handle
                     break;
                 case 0:
                     packet_size = max(sizeof(struct ICMPHeader), min(MAX_PING_DATA_SIZE, (unsigned int)packet_size));
@@ -67,13 +66,14 @@ int main(int argc, char *argv[]){
                         printf("\nSending %d bytes to %s ...", packet_size, inet_ntoa(dest_addr.sin_addr)); //TODO: to IO
 
 
-                        switch(nw_send_request(socket,&dest_addr,&send_buf, packet_size)){ //send request
+                        switch(nw_send_request(&socket,&dest_addr,&send_buf, packet_size)){ //send request
                             case 1:
                                 printf("error on sending\n"); //TODO: error handle
                                 packets_sent++;
+                                break;
                             case 0:
                                 packets_sent++;
-                                switch(nw_get_reply(socket,&source_addr,recv_buf,packet_size, start_time_ms)){
+                                switch(nw_get_reply(&socket,&source_addr,recv_buf,packet_size, start_time_ms)){
                                     case 1:
                                         printf("error on getting reply\n"); //TODO: error handle
                                         break;
@@ -89,5 +89,6 @@ int main(int argc, char *argv[]){
     }
     WSACleanup();
     free(recv_buf);
+    printf("memory clear\n");
     return 0;
 }

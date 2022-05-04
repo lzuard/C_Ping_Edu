@@ -61,23 +61,29 @@ build CMakeFiles/Ping.dir/Source/console.c.obj: C_COMPILER__Ping_Debug C$:/Users
   OBJECT_DIR = CMakeFiles\Ping.dir
   OBJECT_FILE_DIR = CMakeFiles\Ping.dir\Source
 
-build CMakeFiles/Ping.dir/logs.c.obj: C_COMPILER__Ping_Debug C$:/Users/sasha/CLionProjects/Ping/logs.c || cmake_object_order_depends_target_Ping
-  DEP_FILE = CMakeFiles\Ping.dir\logs.c.obj.d
+build CMakeFiles/Ping.dir/Source/logs.c.obj: C_COMPILER__Ping_Debug C$:/Users/sasha/CLionProjects/Ping/Source/logs.c || cmake_object_order_depends_target_Ping
+  DEP_FILE = CMakeFiles\Ping.dir\Source\logs.c.obj.d
   FLAGS = -g -std=gnu99
   OBJECT_DIR = CMakeFiles\Ping.dir
-  OBJECT_FILE_DIR = CMakeFiles\Ping.dir
+  OBJECT_FILE_DIR = CMakeFiles\Ping.dir\Source
 
-build CMakeFiles/Ping.dir/validation.c.obj: C_COMPILER__Ping_Debug C$:/Users/sasha/CLionProjects/Ping/validation.c || cmake_object_order_depends_target_Ping
-  DEP_FILE = CMakeFiles\Ping.dir\validation.c.obj.d
+build CMakeFiles/Ping.dir/Source/validation.c.obj: C_COMPILER__Ping_Debug C$:/Users/sasha/CLionProjects/Ping/Source/validation.c || cmake_object_order_depends_target_Ping
+  DEP_FILE = CMakeFiles\Ping.dir\Source\validation.c.obj.d
   FLAGS = -g -std=gnu99
   OBJECT_DIR = CMakeFiles\Ping.dir
-  OBJECT_FILE_DIR = CMakeFiles\Ping.dir
+  OBJECT_FILE_DIR = CMakeFiles\Ping.dir\Source
 
-build CMakeFiles/Ping.dir/network.c.obj: C_COMPILER__Ping_Debug C$:/Users/sasha/CLionProjects/Ping/network.c || cmake_object_order_depends_target_Ping
-  DEP_FILE = CMakeFiles\Ping.dir\network.c.obj.d
+build CMakeFiles/Ping.dir/Source/network.c.obj: C_COMPILER__Ping_Debug C$:/Users/sasha/CLionProjects/Ping/Source/network.c || cmake_object_order_depends_target_Ping
+  DEP_FILE = CMakeFiles\Ping.dir\Source\network.c.obj.d
   FLAGS = -g -std=gnu99
   OBJECT_DIR = CMakeFiles\Ping.dir
-  OBJECT_FILE_DIR = CMakeFiles\Ping.dir
+  OBJECT_FILE_DIR = CMakeFiles\Ping.dir\Source
+
+build CMakeFiles/Ping.dir/Source/Playground.c.obj: C_COMPILER__Ping_Debug C$:/Users/sasha/CLionProjects/Ping/Source/Playground.c || cmake_object_order_depends_target_Ping
+  DEP_FILE = CMakeFiles\Ping.dir\Source\Playground.c.obj.d
+  FLAGS = -g -std=gnu99
+  OBJECT_DIR = CMakeFiles\Ping.dir
+  OBJECT_FILE_DIR = CMakeFiles\Ping.dir\Source
 
 
 # =============================================================================
@@ -87,9 +93,9 @@ build CMakeFiles/Ping.dir/network.c.obj: C_COMPILER__Ping_Debug C$:/Users/sasha/
 #############################################
 # Link the executable Ping.exe
 
-build Ping.exe: C_EXECUTABLE_LINKER__Ping_Debug CMakeFiles/Ping.dir/Source/main.c.obj CMakeFiles/Ping.dir/Source/console.c.obj CMakeFiles/Ping.dir/logs.c.obj CMakeFiles/Ping.dir/validation.c.obj CMakeFiles/Ping.dir/network.c.obj
+build Ping.exe: C_EXECUTABLE_LINKER__Ping_Debug CMakeFiles/Ping.dir/Source/main.c.obj CMakeFiles/Ping.dir/Source/console.c.obj CMakeFiles/Ping.dir/Source/logs.c.obj CMakeFiles/Ping.dir/Source/validation.c.obj CMakeFiles/Ping.dir/Source/network.c.obj CMakeFiles/Ping.dir/Source/Playground.c.obj
   FLAGS = -g
-  LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = -lws2_32  -lwsock32  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\Ping.dir
   POST_BUILD = cd .
   PRE_LINK = cd .

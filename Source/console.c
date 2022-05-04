@@ -19,7 +19,7 @@ void io_welcome(){
 }
 
 int io_get_input(char input[STR_SIZE]){
-    printf("Enter the command below:\n");
+    printf("Enter the line below:\n");
     scanf("%s",input);
     //TODO: better implementation?
     return 0;

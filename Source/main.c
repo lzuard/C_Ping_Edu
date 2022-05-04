@@ -1,7 +1,11 @@
 //Main project file, start and execution point
 
-//C headers
+#include <winsock2.h>
+#include <windows.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 //Local project headers
 #include "../Headers/settings.h"
@@ -9,33 +13,42 @@
 #include "../Headers/network.h"
 
 
-#define DEFAULT_PACKET_SIZE 32
-#define DEFAULT_TTL 30
-#define DEFAULT_TIMEOUT 1000
 
 //Variables
-char input[STR_SIZE];
-
-
+char input[STR_SIZE]="192.168.0.1"; //TODO:debug
 
 
 int main(int argc, char *argv[]){
     io_welcome();
-    io_get_input(input);
+    //io_get_input(input); //TODO:debug
 
-    // Figure out how big to make the ping packet
     int packet_size = DEFAULT_PACKET_SIZE;
     int ttl = DEFAULT_TTL;
     int timeout = DEFAULT_TIMEOUT;
 
-    switch (network_ping(packet_size, ttl, input, timeout)){
+    struct ICMPHeader send_buf;
+    struct IPHeader *recv_buf = malloc(sizeof(struct IPHeader));
+
+    //init socket
+    struct WSAData wsaData;
+    SOCKET socket;
+
+    struct sockaddr_in dest_addr;
+    struct sockaddr_in source_addr;
+
+    switch(nw_get_host(input,&dest_addr)){ //get host address
+        case 1:
+            printf("error on host recognition\n"); //TODO: error handle
+            break;
         case 0:
-            break;
-        case -1:
-            printf("\nTimeout\n");
-            break;
-        case -2:
-            break;
+            switch(nw_setup(&send_buf,&wsaData,&socket)){ // setup socket and things
+                case 1:
+                    printf("error on network set up\n"); //TODO: error handle
+                    break;
+                case 0:
+                    printf("all good\n");
+                    break;
+            }
     }
     return 0;
 }

@@ -1,5 +1,7 @@
 //Headers for console.c file
 
+#include <stdio.h>
+
 //Local project headers
 #include "../Headers/settings.h"
 

@@ -3,7 +3,7 @@
 //Headers in console.h
 
 //C headers
-#include <stdio.h>
+
 
 //Local project headers
 #include "../Headers/console.h"

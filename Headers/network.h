@@ -41,4 +41,6 @@ struct ICMPHeader
 
 int nw_get_host(char *host, struct sockaddr_in *dest_addr);
 int nw_setup(struct ICMPHeader *icmpHeader,  struct WSAData *wsaData, SOCKET *socket);
+int nw_send_request(SOCKET socket, const struct sockaddr_in *dest_addr, struct ICMPHeader *send_buf, int packet_size);
+int nw_get_reply(SOCKET socket, struct sockaddr_in *source_addr, struct IPHeader *recv_buf, int packet_size, ULONG start_time_ms);
 

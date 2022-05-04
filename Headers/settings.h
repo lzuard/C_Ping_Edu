@@ -6,6 +6,8 @@
 #define STR_SIZE 100 //Size for all char arrays in project
 
 
+#define MAX_PACKETS_NUM 5
+
 // ICMP packet types
 #define ICMP_ECHO_REPLY 0
 #define ICMP_DEST_UNREACH 3

@@ -29,6 +29,7 @@ int max_packets_sent = 4;   // Maximum number of packets to be sent
 int packet_size = DEFAULT_PACKET_SIZE;     // ICMP packet size
 int bytes_sent=0;           // Bytes have been sent
 int ttl = 128;              // ICMP packet TTL
+int result=0;               // ICMP packet decode result
 int timeout = 1000;         // Timout for echo-reply waiting in ms
 int program_error_code = 0; // Program execution error code
 int log_error_code = -1;    // Log work error code
@@ -46,9 +47,9 @@ struct sockaddr_in source_addr; // Local device address
 
 void stop_program()
 {
-    printf("[Debug info] Trying to stop the program\n");/////////////////////////////////////
+    //printf("[Debug info] Trying to stop the program\n");/////////////////////////////////////
     WSACleanup();
-    printf("[Debug info] WSA cleaned up\n");/////////////////////////////////////
+    //printf("[Debug info] WSA cleaned up\n");/////////////////////////////////////
 
     //free(recv_buf);
     //printf("[Debug info] Memory cleaned up\n");/////////////////////////////////////
@@ -56,16 +57,25 @@ void stop_program()
     printf("Program stopped ");
     switch(program_error_code){
         case 0:
-            printf("\n");
+            printf("");
             break;
         case 101:
-            printf("due to socket open error #%d\n", WSAGetLastError());
+            printf("due to socket open error #%d ", WSAGetLastError());
             break;
         case 102:
-            printf("due to error on host recognition\n");
+            printf("due to error on host recognition ");
             break;
         case 103:
-            printf("due to sending error #%d\n", WSAGetLastError());
+            printf("due to sending WSA error %d ", WSAGetLastError());
+            break;
+        case 104:
+            printf("due to wrong ICMP packet checksum\n");
+            break;
+        case 105:
+            printf("due to reply waiting timeout\n");
+            break;
+        case 106:
+            printf("due to receiving reply, WSA error %d\n",WSAGetLastError());
             break;
         default:
             printf("due to unknown issue\n");
@@ -125,11 +135,11 @@ void main(int argc, char *argv[])
                                     stop_program();
                                     break;
                                 case 0:
-                                    printf("get ip case 0\n");
+
                                     while (packets_sent<max_packets_sent)
                                     {
                                         start_time_ms=u_get_cur_time_ms();
-                                        printf("[Log] Sending packet %d of %d\n",packets_sent+1,max_packets_sent);////////////////////////////////////////////
+                                        //printf("[Log] Sending packet %d of %d\n",packets_sent+1,max_packets_sent);////////////////////////////////////////////
                                         switch (nw_send_request(ping_socket, dest_addr, send_buf, packet_size,&program_error_code, &bytes_sent)) //send
                                         {
                                             case 1:
@@ -142,11 +152,12 @@ void main(int argc, char *argv[])
                                             case 0:
 
                                                 packets_sent++;
-                                                printf("sent %d bytes\n", bytes_sent);
-                                                switch(nw_get_reply(ping_socket,dest_addr,recv_buf,packet_size,&program_error_code))
+                                                //printf("sent %d bytes\n", bytes_sent);
+                                                switch(nw_get_reply(ping_socket,dest_addr,recv_buf,packet_size,&program_error_code, &result))
                                                 {
                                                     case 0:
-                                                        printf("[Log] Got packet %d of %d in %d ms\n",packets_sent,max_packets_sent,u_get_cur_time_ms()-start_time_ms);////////////////////////////////////////////
+                                                        nw_show_result(recv_buf,params_address,start_time_ms,result,packet_size);
+                                                        //printf("[Log] Got packet %d of %d in %d ms\n",packets_sent,max_packets_sent,u_get_cur_time_ms()-start_time_ms);////////////////////////////////////////////
                                                         break;
                                                     default:
                                                         printf("error on getting reply\n");
@@ -161,7 +172,7 @@ void main(int argc, char *argv[])
                             while (packets_sent<max_packets_sent)
                             {
                                 start_time_ms=u_get_cur_time_ms();
-                                printf("[Log] Sending packet %d of %d\n",packets_sent+1,max_packets_sent);////////////////////////////////////////////
+                                //printf("[Log] Sending packet %d of %d\n",packets_sent+1,max_packets_sent);////////////////////////////////////////////
                                 switch (nw_send_request(ping_socket, dest_addr, send_buf, packet_size,&program_error_code, &bytes_sent)) //send
                                 {
                                     case 1:
@@ -175,10 +186,11 @@ void main(int argc, char *argv[])
 
                                         packets_sent++;
                                         //printf("sent %d bytes\n", bytes_sent);
-                                        switch(nw_get_reply(ping_socket,dest_addr,recv_buf,packet_size,&program_error_code))
+                                        switch(nw_get_reply(ping_socket,dest_addr,recv_buf,packet_size,&program_error_code, &result))
                                         {
                                             case 0:
-                                                printf("[Log] Got packet %d of %d in %d ms\n",packets_sent,max_packets_sent,u_get_cur_time_ms()-start_time_ms);////////////////////////////////////////////
+                                                nw_show_result(recv_buf,params_address,start_time_ms,result,packet_size);
+                                                //printf("[Log] Got packet %d of %d in %d ms\n",packets_sent,max_packets_sent,u_get_cur_time_ms()-start_time_ms);////////////////////////////////////////////
                                                 break;
                                             default:
                                                 printf("error on getting reply\n");

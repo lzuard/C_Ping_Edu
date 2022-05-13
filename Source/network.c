@@ -1,8 +1,6 @@
 //Network connection part
 //Headers in network.h
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
+
 
 
 #include "../Headers/network.h"
@@ -21,6 +19,7 @@ int nw_get_ip(char *host,struct sockaddr_in *dest_addr, int *program_error_code)
     if(domain_address!=0){
         memcpy(&(dest_addr->sin_addr),domain_address->h_addr_list[0],domain_address->h_length);
         dest_addr->sin_family = domain_address->h_addrtype;
+        printf("[Debug info] Host recognized as a domain name, it's IP address: %s\n", inet_ntoa(dest_addr->sin_addr));//////////////////////////////////////////////////////////////////////////////////
         return 0;
     }
     else
@@ -31,6 +30,7 @@ int nw_get_ip(char *host,struct sockaddr_in *dest_addr, int *program_error_code)
 }
 int nw_check_host(char *host, int ttl, struct sockaddr_in *dest_addr,struct WSAData *wsaData,SOCKET *ping_socket, int *program_error_code){
     unsigned long ip_address;
+    printf("[Debug info] Host name is: %s\n",host);///////////////////////////////////////////////////////////////////
 
     if(WSAStartup(MAKEWORD(2,1), wsaData)==0)   //Init wsa to open socket
     {
@@ -44,6 +44,8 @@ int nw_check_host(char *host, int ttl, struct sockaddr_in *dest_addr,struct WSAD
                 {
                     dest_addr->sin_family = AF_INET;
                     dest_addr->sin_addr.s_addr = ip_address;
+
+                    printf("[Debug info] Host recognized as an IPv4 address: %s\n", inet_ntoa(dest_addr->sin_addr));//////////////////////////////////////////////////////////////////////////////////
                     return 0;
                 } else return 1; //not an ip, will check if it's a domain later
             }
@@ -104,27 +106,73 @@ int nw_setup(struct ICMPHeader *icmpHeader,  struct WSAData *wsaData, SOCKET* so
     }
 }
 
-int nw_send_request(SOCKET* ping_socket, struct sockaddr_in *dest_addr, struct ICMPHeader *send_buf, int packet_size, int *program_error_code, int *bytes_sent){
+int nw_send_request(SOCKET ping_socket, struct sockaddr_in dest_addr, struct ICMPHeader send_buf, int packet_size, int *program_error_code, int *bytes_sent){
 
-    send_buf->code = 0;
-    send_buf->type = ICMP_ECHO_REQUEST;
-    send_buf->code = 0;
-    send_buf->checksum = 0;
-    send_buf->id = (USHORT)GetCurrentProcessId();
-    send_buf->seq = 0;
-    send_buf->timestamp = GetTickCount();
-    send_buf->checksum = ip_checksum((USHORT *)&send_buf, DEFAULT_PACKET_SIZE);
+    packet_size = max(sizeof(struct ICMPHeader),min(MAX_PING_DATA_SIZE, (unsigned int)packet_size));
 
-    *bytes_sent = sendto(*ping_socket, (char *)send_buf, packet_size, 0,(struct sockaddr *)dest_addr, sizeof(*dest_addr));
+    send_buf.code = 0;
+    send_buf.type = ICMP_ECHO_REQUEST;
+    send_buf.code = 0;
+    send_buf.checksum = 0;
+    send_buf.id = (USHORT)GetCurrentProcessId();
+    send_buf.seq = 0;
+    send_buf.timestamp = GetTickCount();
+    send_buf.checksum = ip_checksum((USHORT *)&send_buf, packet_size);
+
+    *bytes_sent = sendto(ping_socket, (char *)&send_buf, packet_size, 0, (struct sockaddr*)&dest_addr, sizeof(dest_addr));
+    printf("[Debug info] %d bytes sent to %s\n",*bytes_sent, inet_ntoa(dest_addr.sin_addr)); //////////////////////////////////////////////////////////
 
     if (*bytes_sent == SOCKET_ERROR){
+        printf("sent errno #%d, wsa #%d\n",errno,WSAGetLastError());
         *program_error_code=103;
         return 1;
     }
     else return 0;
 }
 
-int nw_get_reply(SOCKET* socket, struct sockaddr_in *source_addr, struct IPHeader *recv_buf, int packet_size, ULONG start_time_ms){
+int nw_get_reply(SOCKET ping_socket,struct sockaddr_in source_addr, struct IPHeader *recv_buf,int packet_size, int *program_error_code)
+{
+    struct timeval time_for_timout;
+    fd_set socket_descriptor;
+    int receive_result;
+    int fromlen;
+
+    time_for_timout.tv_sec = 5;
+    time_for_timout.tv_usec = (1000 % 1000) * 100000;
+    fromlen = sizeof(source_addr);
+
+    printf("[Debug info] Waiting a reply from  %s\n", inet_ntoa(source_addr.sin_addr));
+    while(1)
+    {
+        FD_ZERO(&socket_descriptor);
+        FD_SET(ping_socket, &socket_descriptor);
+
+        switch(select(ping_socket+1, &socket_descriptor, 0, 0, &time_for_timout))
+        {
+            case 0:
+                printf("select error\n");
+                return 1;
+            case -1:
+                printf("timeout, errno: %d\n",errno);
+                return 1;
+            default:
+                printf("[Debug info] Select passed\n");//////////////////////////////////////////////////////
+                if(recvfrom(ping_socket, (char*) recv_buf,packet_size+sizeof(struct IPHeader),0,(struct sockaddr*) &source_addr, &fromlen)!=SOCKET_ERROR){
+                    printf("[Debug info] Socket received packet\n");/////////////////////////////////////////////////
+                    return 0;
+                }
+                else
+                {
+                    printf("error on recv\n");
+                    return 10;
+                }
+
+
+        }
+    }
+}
+
+int nw_get_repl(SOCKET* socket, struct sockaddr_in *source_addr, struct IPHeader *recv_buf, int packet_size, ULONG start_time_ms){
     struct timeval timeval;
     timeval.tv_sec = 1;
     timeval.tv_usec = (1000 % 1000) * 1000;
@@ -143,15 +191,10 @@ int nw_get_reply(SOCKET* socket, struct sockaddr_in *source_addr, struct IPHeade
         switch (wait_result) {
             case 0:
                 return 1; //timeout
-                printf("hello");
-                break;
             case -1:
                 return 2; //select error
-                printf("2");
-                break;
             default:
-                switch (recvfrom(*socket, (char *) recv_buf, packet_size + sizeof(struct IPHeader), 0,
-                                 (struct sockaddr *) source_addr, &fromlen)) { // read reply
+                switch (recvfrom(*socket, (char *) recv_buf, packet_size + sizeof(struct IPHeader), 0,(struct sockaddr *) source_addr, &fromlen)) { // read reply
                     case SOCKET_ERROR:
                         if (WSAGetLastError() == WSAEMSGSIZE) {
                             printf("buffer too small\n"); //TODO: error handle

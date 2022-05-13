@@ -14,13 +14,18 @@ int u_check_params(char input[]){
     return 0; //TODO: add params_address check
 }
 
-USHORT ip_checksum(USHORT *buffer, int size){
+USHORT ip_checksum(USHORT *buffer, int size)
+{
+    unsigned long buffer_size= sizeof(buffer);
     unsigned long cksum = 0;
-    while (size > 1){
+
+    while (size > 1)
+    {
         cksum += *buffer++;
         size -= sizeof(USHORT);
     }
-    if (size){
+    if (size)
+    {
         cksum += *(UCHAR *)buffer;
     }
 

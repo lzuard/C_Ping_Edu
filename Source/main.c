@@ -1,5 +1,7 @@
 //Main project file, start and execution point
 
+#pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "user32.lib")
 //Standard C libraries
 #include <winsock2.h>   // Sockets library
 #include <windows.h>    // Win32 api functions
@@ -14,22 +16,25 @@
 #include "../Headers/network.h"     // Network functions
 #include "../Headers/utils.h"       // Helpful utils
 #include "../Headers/logs.h"        // Log functions
+#ifdef _MSC_VER
 
+#pragma pack(1)
+#endif
 
 //Variables
 ULONG start_time_ms;        // Ping send time in ms
 SOCKET ping_socket;         // Socket for network communication
 int packets_sent = 0;       // Number of sent packets
-int max_packets_sent = 5;   // Maximum number of packets to be sent
-int packet_size = 1024;     // ICMP packet size
+int max_packets_sent = 4;   // Maximum number of packets to be sent
+int packet_size = DEFAULT_PACKET_SIZE;     // ICMP packet size
 int bytes_sent=0;           // Bytes have been sent
-int ttl = 30;               // ICMP packet TTL in ms
+int ttl = 128;              // ICMP packet TTL
 int timeout = 1000;         // Timout for echo-reply waiting in ms
 int program_error_code = 0; // Program execution error code
 int log_error_code = -1;    // Log work error code
 
-char params_address[]="google.com";    // User input destination address TODO:debug delete arrays
-char params_log_path[]="nothing";       // User input log file path TODO:debug delete arrays
+char *params_address="192.168.0.13";    // User input destination address TODO:debug delete arrays
+char *params_log_path="nothing";       // User input log file path TODO:debug delete arrays
 
 //Structures
 struct ICMPHeader send_buf;     // Buffer for send packet
@@ -41,8 +46,13 @@ struct sockaddr_in source_addr; // Local device address
 
 void stop_program()
 {
+    printf("[Debug info] Trying to stop the program\n");/////////////////////////////////////
     WSACleanup();
-    free(recv_buf);
+    printf("[Debug info] WSA cleaned up\n");/////////////////////////////////////
+
+    //free(recv_buf);
+    //printf("[Debug info] Memory cleaned up\n");/////////////////////////////////////
+
     printf("Program stopped ");
     switch(program_error_code){
         case 0:
@@ -55,7 +65,7 @@ void stop_program()
             printf("due to error on host recognition\n");
             break;
         case 103:
-            printf("due to sending error\n");
+            printf("due to sending error #%d\n", WSAGetLastError());
             break;
         default:
             printf("due to unknown issue\n");
@@ -77,6 +87,7 @@ void stop_program()
 
 void main(int argc, char *argv[])
 {
+    params_address=argv[1];
 
     recv_buf = malloc(sizeof(struct IPHeader));
 
@@ -112,10 +123,14 @@ void main(int argc, char *argv[])
                                         log_diagnostics();
                                     }
                                     stop_program();
+                                    break;
                                 case 0:
-                                    while (packets_sent<max_packets_sent) {
-                                        switch (nw_send_request(&ping_socket, &dest_addr, &send_buf, packet_size,
-                                                                &program_error_code, &bytes_sent)) //send
+                                    printf("get ip case 0\n");
+                                    while (packets_sent<max_packets_sent)
+                                    {
+                                        start_time_ms=u_get_cur_time_ms();
+                                        printf("[Log] Sending packet %d of %d\n",packets_sent+1,max_packets_sent);////////////////////////////////////////////
+                                        switch (nw_send_request(ping_socket, dest_addr, send_buf, packet_size,&program_error_code, &bytes_sent)) //send
                                         {
                                             case 1:
                                                 printf("error on sent\n");
@@ -123,60 +138,59 @@ void main(int argc, char *argv[])
                                                     log_diagnostics();
                                                 }
                                                 stop_program();
+                                                break;
                                             case 0:
+
+                                                packets_sent++;
                                                 printf("sent %d bytes\n", bytes_sent);
+                                                switch(nw_get_reply(ping_socket,dest_addr,recv_buf,packet_size,&program_error_code))
+                                                {
+                                                    case 0:
+                                                        printf("[Log] Got packet %d of %d in %d ms\n",packets_sent,max_packets_sent,u_get_cur_time_ms()-start_time_ms);////////////////////////////////////////////
+                                                        break;
+                                                    default:
+                                                        printf("error on getting reply\n");
+                                                        break;
+                                                }
                                                 break;
                                         }
                                     }
                             }
                             break;
-                        case 0: // ipv4
-                            printf("all good, %d\n", program_error_code);
+                        case 0:                                                                                                                                         // host is ip
+                            while (packets_sent<max_packets_sent)
+                            {
+                                start_time_ms=u_get_cur_time_ms();
+                                printf("[Log] Sending packet %d of %d\n",packets_sent+1,max_packets_sent);////////////////////////////////////////////
+                                switch (nw_send_request(ping_socket, dest_addr, send_buf, packet_size,&program_error_code, &bytes_sent)) //send
+                                {
+                                    case 1:
+                                        printf("error on sent\n");
+                                        if (log_write() != 0) {
+                                            log_diagnostics();
+                                        }
+                                        stop_program();
+                                        break;
+                                    case 0:
+
+                                        packets_sent++;
+                                        //printf("sent %d bytes\n", bytes_sent);
+                                        switch(nw_get_reply(ping_socket,dest_addr,recv_buf,packet_size,&program_error_code))
+                                        {
+                                            case 0:
+                                                printf("[Log] Got packet %d of %d in %d ms\n",packets_sent,max_packets_sent,u_get_cur_time_ms()-start_time_ms);////////////////////////////////////////////
+                                                break;
+                                            default:
+                                                printf("error on getting reply\n");
+                                                break;
+                                        }
+                                        break;
+                                }
+                            }
                             break;
                     }
             }
     }
     stop_program();
-
-//    switch(nw_setup(&send_buf,&wsaData,&ping_socket)){ // setup ping_socket and things
-//        case 1:
-//            printf("error on network set up\n"); //TODO: error handle
-//            break;
-//        case 0:
-//            switch(nw_get_host(params_address, &dest_addr))
-//            { //get host address
-//                case 1:
-//                    printf("error on host recognition\n"); //TODO: error handle
-//                    break;
-//                case 0:
-//                    packet_size = max(sizeof(struct ICMPHeader), min(MAX_PING_DATA_SIZE, (unsigned int)packet_size));
-//                    while(packets_sent<MAX_PACKETS_NUM)
-//                    {
-//                        start_time_ms = u_get_cur_time_ms();
-//                        printf("\nSending %d bytes to %s ...", packet_size, inet_ntoa(dest_addr.sin_addr)); //TODO: to IO
-//
-//
-//                        switch(nw_send_request(&ping_socket, &dest_addr, &send_buf, packet_size))
-//                        { //send request
-//                            case 1:
-//                                printf("error on sending\n"); //TODO: error handle
-//                                packets_sent++;
-//                                break;
-//                            case 0:
-//                                packets_sent++;
-//                                switch(nw_get_reply(&ping_socket, &source_addr, recv_buf, packet_size, start_time_ms)){
-//                                    case 1:
-//                                        printf("error on getting reply\n"); //TODO: error handle
-//                                        break;
-//                                    case 0:
-//                                        printf(" all good\n");
-//                                        break;
-//
-//                                }
-//                        }
-//                    }
-//                    break;
-//            }
-//    }
 
 }

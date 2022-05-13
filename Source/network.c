@@ -6,7 +6,7 @@
 
 
 #include "../Headers/network.h"
-#include "../Headers/settings.h"
+#include "../Headers/utils.h"
 
 
 
@@ -15,50 +15,64 @@
 #pragma pack(1)
 #endif
 
-
-USHORT ip_checksum(USHORT *buffer, int size){
-    unsigned long cksum = 0;
-    while (size > 1){
-        cksum += *buffer++;
-        size -= sizeof(USHORT);
+int nw_get_ip(char *host,struct sockaddr_in *dest_addr, int *program_error_code){
+    struct hostent *domain_address;
+    domain_address = gethostbyname(host);
+    if(domain_address!=0){
+        memcpy(&(dest_addr->sin_addr),domain_address->h_addr_list[0],domain_address->h_length);
+        dest_addr->sin_family = domain_address->h_addrtype;
+        return 0;
     }
-    if (size){
-        cksum += *(UCHAR *)buffer;
+    else
+    {
+        *program_error_code=102;
+        return 1;
     }
-
-    cksum = (cksum >> 16) + (cksum & 0xffff);
-    cksum += (cksum >> 16);
-
-    return (USHORT)(~cksum);
 }
-ULONG get_cur_time_ms()
-{
-    SYSTEMTIME now;
-    GetSystemTime(&now);
-    return now.wMilliseconds;
-}
+int nw_check_host(char *host, int ttl, struct sockaddr_in *dest_addr,struct WSAData *wsaData,SOCKET *ping_socket, int *program_error_code){
+    unsigned long ip_address;
 
-int nw_get_host(char *host, struct sockaddr_in *dest_addr){
-
-    unsigned int addr = inet_addr(host);
-
-    if (addr != INADDR_NONE){ //IPv4
-        dest_addr->sin_addr.s_addr = (u_long)addr;
-
-        dest_addr->sin_family = AF_INET;
-    }
-    else{
-        struct hostent *hp = gethostbyname(host);
-        if (hp != 0){ //Domain name
-            memcpy(&(dest_addr->sin_addr), hp->h_addr, hp->h_length);
-            dest_addr->sin_family = hp->h_addrtype;
-        }
-        else{ //Wrong name
-            return -1; //TODO: host name error;
+    if(WSAStartup(MAKEWORD(2,1), wsaData)==0)   //Init wsa to open socket
+    {
+        *ping_socket=WSASocket(AF_INET, SOCK_RAW, IPPROTO_ICMP, 0, 0, 0);   //init socket using wsa
+        if(*ping_socket!=INVALID_SOCKET)
+        {
+            if (setsockopt(*ping_socket, IPPROTO_IP, IP_TTL, (const char *) &ttl, sizeof(ttl)) != SOCKET_ERROR)     //open socket
+            {
+                ip_address = inet_addr(host);
+                if (ip_address != INADDR_NONE) // case ipV4
+                {
+                    dest_addr->sin_family = AF_INET;
+                    dest_addr->sin_addr.s_addr = ip_address;
+                    return 0;
+                } else return 1; //not an ip, will check if it's a domain later
+            }
         }
     }
-    return 0;
+    *program_error_code=101;
+    return 2;
 }
+//int nw_get_host(char *host, struct sockaddr_in *dest_addr){
+//
+//    unsigned int addr = inet_addr(host);
+//
+//    if (addr != INADDR_NONE){ //IPv4
+//        dest_addr->sin_addr.s_addr = (u_long)addr;
+//
+//        dest_addr->sin_family = AF_INET;
+//    }
+//    else{
+//        struct hostent *hp = gethostbyname(host);
+//        if (hp != 0){ //Domain name
+//            memcpy(&(dest_addr->sin_addr), hp->h_addr, hp->h_length);
+//            dest_addr->sin_family = hp->h_addrtype;
+//        }
+//        else{ //Wrong name
+//            return -1; //TODO: host name error;
+//        }
+//    }
+//    return 0;
+//}
 
 int nw_setup(struct ICMPHeader *icmpHeader,  struct WSAData *wsaData, SOCKET* socket){
     icmpHeader->code = 0;
@@ -90,17 +104,24 @@ int nw_setup(struct ICMPHeader *icmpHeader,  struct WSAData *wsaData, SOCKET* so
     }
 }
 
-int nw_send_request(SOCKET* socket, const struct sockaddr_in *dest_addr, struct ICMPHeader *send_buf, int packet_size){
-    int bwrote = sendto(*socket, (char *)send_buf, packet_size, 0,(struct sockaddr *)dest_addr, sizeof(*dest_addr));
-    if (bwrote == SOCKET_ERROR){
-        printf("Send failed: %d\n", WSAGetLastError()); //TODO: io
+int nw_send_request(SOCKET* ping_socket, struct sockaddr_in *dest_addr, struct ICMPHeader *send_buf, int packet_size, int *program_error_code, int *bytes_sent){
+
+    send_buf->code = 0;
+    send_buf->type = ICMP_ECHO_REQUEST;
+    send_buf->code = 0;
+    send_buf->checksum = 0;
+    send_buf->id = (USHORT)GetCurrentProcessId();
+    send_buf->seq = 0;
+    send_buf->timestamp = GetTickCount();
+    send_buf->checksum = ip_checksum((USHORT *)&send_buf, DEFAULT_PACKET_SIZE);
+
+    *bytes_sent = sendto(*ping_socket, (char *)send_buf, packet_size, 0,(struct sockaddr *)dest_addr, sizeof(*dest_addr));
+
+    if (*bytes_sent == SOCKET_ERROR){
+        *program_error_code=103;
         return 1;
     }
-    else if (bwrote < packet_size)
-    {
-        printf("Sent %d bytes...", bwrote);
-    }
-    return 0;
+    else return 0;
 }
 
 int nw_get_reply(SOCKET* socket, struct sockaddr_in *source_addr, struct IPHeader *recv_buf, int packet_size, ULONG start_time_ms){

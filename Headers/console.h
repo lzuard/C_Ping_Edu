@@ -12,7 +12,7 @@
 
 void io_welcome(); //First console output on program start
 
-int io_get_input(char input[STR_SIZE]); //Get console input from user
+int io_get_input(char input[STR_SIZE]); //Get console params_address from user
 
 
 #endif //PING_CONSOLE_H

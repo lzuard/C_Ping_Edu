@@ -4,3 +4,7 @@
 #define PING_LOGS_H
 
 #endif //PING_LOGS_H
+
+int log_open_file(char path[]);
+int log_write();
+int log_diagnostics();

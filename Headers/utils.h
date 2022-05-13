@@ -1,0 +1,13 @@
+//Headers for validation.c
+#include <windows.h>
+
+
+#ifndef PING_UTILS_H
+#define PING_UTILS_H
+
+#endif //PING_UTILS_H
+
+
+ULONG u_get_cur_time_ms();
+USHORT ip_checksum(USHORT *buffer, int size);
+int u_check_params(char input[]);

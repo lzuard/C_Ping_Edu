@@ -25,4 +25,10 @@
 #define DEFAULT_TTL 30
 #define DEFAULT_TIMEOUT 1000
 
+
+
+//error codes
+//101 - WSA startup error
+//102 - Wrong user address
+
 #endif //PING_SETTINGS_H

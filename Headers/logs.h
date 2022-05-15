@@ -7,4 +7,4 @@
 
 int log_open_file(char path[]);
 int log_write();
-int log_diagnostics();
+int log_diagnostics(int log_error_code);

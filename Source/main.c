@@ -64,6 +64,9 @@ void stop_program()
         case 106:
             printf("due to receiving reply, WSA error %d\n",WSAGetLastError());
             break;
+        case 107:
+            printf("due to invalid parameters. Usage: ping [host] [log file full path]\n");
+            break;
         default:
             printf("due to unknown issue\n");
             break;
@@ -89,7 +92,7 @@ int main(int argc, char *argv[])
     switch(u_check_params(argc, argv, &params_address, &params_log_path))  //check params
     {
         case 1:
-            printf("wrong params\n");
+            program_error_code=107;
             stop_program();
             break;
         case 0:
@@ -97,27 +100,27 @@ int main(int argc, char *argv[])
             switch(log_open_file(params_log_path))      //Open log file
             {
                 case 1:
-                    log_diagnostics();
+                    log_diagnostics(log_error_code);
                     stop_program();
                     break;
                 case 0:
                     switch(nw_check_host(params_address,ttl,&dest_addr,&wsaData,&ping_socket, &program_error_code))      // check host
                     {
                         case 2:                                                                                                         //error on host check
-                            if(log_write()!=0){
-                                log_diagnostics();
-                            }
-                            stop_program();
+//                            if(log_write()!=0){
+//                                log_diagnostics();
+//                            }
+//                            stop_program();
                             break;
                         case 1:                                                                                                 // host is domain
                             switch(nw_get_ip(params_address,&dest_addr,&program_error_code))        // get ip
                             {
                                 case 1:
-                                    printf("wrong host");
-                                    if(log_write()!=0){
-                                        log_diagnostics();
-                                    }
-                                    stop_program();
+//                                    printf("wrong host");
+//                                    if(log_write()!=0){
+//                                        log_diagnostics();
+//                                    }
+//                                    stop_program();
                                     break;
                                 case 0:
                                     while (packets_sent<max_packets_sent)
@@ -127,11 +130,11 @@ int main(int argc, char *argv[])
                                         switch (nw_send_request(ping_socket, dest_addr, send_buf, packet_size,&program_error_code, &bytes_sent)) //send
                                         {
                                             case 1:
-                                                printf("error on sent\n");
-                                                if (log_write() != 0) {
-                                                    log_diagnostics();
-                                                }
-                                                stop_program();
+//                                                printf("error on sent\n");
+//                                                if (log_write() != 0) {
+//                                                    log_diagnostics();
+//                                                }
+//                                                stop_program();
                                                 break;
                                             case 0:
                                                 packets_sent++;
@@ -159,11 +162,11 @@ int main(int argc, char *argv[])
                                 switch (nw_send_request(ping_socket, dest_addr, send_buf, packet_size,&program_error_code, &bytes_sent)) //send
                                 {
                                     case 1:
-                                        printf("error on sent\n");
-                                        if (log_write() != 0) {
-                                            log_diagnostics();
-                                        }
-                                        stop_program();
+//                                        printf("error on sent\n");
+//                                        if (log_write() != 0) {
+//                                            log_diagnostics();
+//                                        }
+//                                        stop_program();
                                         break;
                                     case 0:
 

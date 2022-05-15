@@ -12,6 +12,9 @@ ULONG u_get_cur_time_ms()
 
 int u_check_params(int argc, char *argv[], char* *params_address, char* *params_log_path)
 {
+    char* curr_path;
+    char* filename="\\ping_log.txt";
+
     if(argc<2 || argc>3) //argv[0] - exe file path
     {
         return 1;
@@ -23,9 +26,12 @@ int u_check_params(int argc, char *argv[], char* *params_address, char* *params_
         {
             *params_log_path=argv[2];
         }
-        else
+        else //
         {
-            *params_log_path=getcwd(NULL,128);
+
+            curr_path=getcwd(NULL,128);
+            *params_log_path=curr_path;
+            strcat(*params_log_path,filename);
         }
         return 0;
     }

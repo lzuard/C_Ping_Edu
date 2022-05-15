@@ -128,10 +128,10 @@ int nw_get_reply(SOCKET ping_socket,struct sockaddr_in source_addr, struct IPHea
     }
 }
 
-void nw_show_result(struct IPHeader *recv_buf, char* host, ULONG start_time, int result, int packet_size)
+void nw_show_result(struct IPHeader *recv_buf, struct sockaddr_in  dest_addr, ULONG start_time, int result, int packet_size)
 {
     printf("Sent %d bytes to ",packet_size);
-    printf("%s: ",host);
+    printf("%s: ", inet_ntoa(dest_addr.sin_addr));
 
     switch(result)
     {

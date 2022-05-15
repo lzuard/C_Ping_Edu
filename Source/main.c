@@ -103,8 +103,7 @@ int main(int argc, char *argv[])
                                                 switch(nw_get_reply(ping_socket,dest_addr,recv_buf,packet_size,&program_error_code, &result))
                                                 {
                                                     case 0:
-                                                        nw_show_result(recv_buf,params_address,start_time_ms,result,packet_size);
-                                                        //printf("[Log] Got packet %d of %d in %d ms\n",packets_sent,max_packets_sent,u_get_cur_time_ms()-start_time_ms);////////////////////////////////////////////
+                                                        nw_show_result(recv_buf,dest_addr,start_time_ms,result,packet_size);                                                        //printf("[Log] Got packet %d of %d in %d ms\n",packets_sent,max_packets_sent,u_get_cur_time_ms()-start_time_ms);////////////////////////////////////////////
                                                         break;
                                                     default:
                                                         if(log_write_error(log_file,program_error_code,&log_error_code)!=0)
@@ -138,7 +137,7 @@ int main(int argc, char *argv[])
                                         switch(nw_get_reply(ping_socket,dest_addr,recv_buf,packet_size,&program_error_code, &result))
                                         {
                                             case 0:
-                                                nw_show_result(recv_buf,params_address,start_time_ms,result,packet_size);
+                                                nw_show_result(recv_buf,dest_addr,start_time_ms,result,packet_size);
                                                 //printf("[Log] Got packet %d of %d in %d ms\n",packets_sent,max_packets_sent,u_get_cur_time_ms()-start_time_ms);////////////////////////////////////////////
                                                 break;
                                             default:

@@ -46,5 +46,5 @@ int nw_get_ip(char *host,struct sockaddr_in *dest_addr, int *program_error_code)
 int nw_check_host(char *host, int ttl, struct sockaddr_in *dest_addr,struct WSAData *wsaData,SOCKET *ping_socket, int *program_error_code);
 int nw_send_request(SOCKET socket, struct sockaddr_in dest_addr, struct ICMPHeader send_buf, int packet_size, int *program_error_code, int *bytes_sent);
 int nw_get_reply(SOCKET ping_socket,struct sockaddr_in source_addr, struct IPHeader *recv_buf,int packet_size, int *program_error_code, int *result);
-void nw_show_result(struct IPHeader *recv_buf, char* host,ULONG start_time, int result, int packet_size);
+void nw_show_result(struct IPHeader *recv_buf, struct sockaddr_in  dest_addr, ULONG start_time, int result, int packet_size);
 

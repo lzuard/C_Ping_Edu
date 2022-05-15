@@ -26,7 +26,7 @@ int u_check_params(int argc, char *argv[], char* *params_address, char* *params_
         {
             *params_log_path=argv[2];
         }
-        else //
+        else
         {
 
             curr_path=getcwd(NULL,128);

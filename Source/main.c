@@ -20,16 +20,15 @@ ULONG start_time_ms;        // Ping send time in ms
 SOCKET ping_socket;         // Socket for network communication
 int packets_sent = 0;       // Number of sent packets
 int max_packets_sent = 4;   // Maximum number of packets to be sent
-int packet_size = 32;     // ICMP packet size
+int packet_size = 32;       // ICMP packet size
 int bytes_sent=0;           // Bytes have been sent
 int ttl = 128;              // ICMP packet TTL
 int result=0;               // ICMP packet decode result
 int timeout = 1000;         // Timout for echo-reply waiting in ms
 int program_error_code = 0; // Program execution error code
-int log_error_code = -1;    // Log work error code
-
-char *params_address;    // User input destination address
-char *params_log_path;       // User input log file path
+int log_error_code = 0;    // Log work error code
+char *params_address;       // User input destination address
+char *params_log_path;      // User input log file path
 
 //Structures
 struct ICMPHeader send_buf;     // Buffer for send packet
@@ -37,6 +36,8 @@ struct IPHeader *recv_buf;      // Buffer for receive packet
 struct WSAData wsaData;         // WSA data struct for socket initialization
 struct sockaddr_in dest_addr;   // Destination address
 struct sockaddr_in source_addr; // Local device address
+
+FILE* log_file;                 // Pointer to the log file
 
 
 void stop_program()
@@ -67,6 +68,9 @@ void stop_program()
         case 107:
             printf("due to invalid parameters. Usage: ping [host] [log file full path]\n");
             break;
+        case 108:
+            printf("due to log file open error\n");
+            break;
         default:
             printf("due to unknown issue\n");
             break;
@@ -81,6 +85,7 @@ void stop_program()
         default:
             printf("Unknown issue caused error on writing logs\n");
     }
+    fclose(log_file);
     exit(0);
 }
 
@@ -97,7 +102,7 @@ int main(int argc, char *argv[])
             break;
         case 0:
             printf("adr: %s, log:%s\n",params_address,params_log_path);//////////////////////////////////////////////////////
-            switch(log_open_file(params_log_path))      //Open log file
+            switch(log_open_file(&log_file,params_log_path,&program_error_code,&log_error_code))      //Open log file
             {
                 case 1:
                     log_diagnostics(log_error_code);

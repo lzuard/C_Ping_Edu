@@ -1,10 +1,22 @@
 //Place for all logs jobs
 //Headers in logs.h
 #include <stdio.h>
+#include <errno.h>
 #include "../Headers/logs.h"
 
-int log_open_file(char path[]){
-    return 0;
+int log_open_file(FILE* *log_file, char* log_path, int *program_error_code, int *log_error_code)
+{
+    *log_file=fopen(log_path,"w");
+    if(*log_file==NULL)
+    {
+        *program_error_code=108;
+        *log_error_code=errno;
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 int log_write(){
     return 0;

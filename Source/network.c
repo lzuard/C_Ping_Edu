@@ -1,23 +1,24 @@
-//Network connection part
-//Headers in network.h
+//Файл с сетевыми функциями
 
+//Подключение заголовочных файлов проекта
+#include "../Headers/network.h" //Объявление сетевых функций
+#include "../Headers/utils.h"   //Вспомогательные функции
 
-
-#include "../Headers/network.h"
-#include "../Headers/utils.h"
-
-
-
+//Функции
+//Функция получения Ip-адреса из доменного имени
 int nw_get_ip(char *host,struct sockaddr_in *dest_addr, int *program_error_code){
-    struct hostent *domain_address;
-    domain_address = gethostbyname(host);
-    if(domain_address!=0){
-        memcpy(&(dest_addr->sin_addr),domain_address->h_addr_list[0],domain_address->h_length);
-        dest_addr->sin_family = domain_address->h_addrtype;
-       //printf("[Debug info] Host recognized as a domain name, it's IP address: %s\n", inet_ntoa(dest_addr->sin_addr));//////////////////////////////////////////////////////////////////////////////////
+    struct hostent *ip_buf; //Вспомогательный буфер для временной записи адреса
+
+    //Получаем ip
+    ip_buf = gethostbyname(host);
+    if(ip_buf != 0) //Если удалось
+    {
+        //Копируем адрес в основной буфер
+        memcpy(&(dest_addr->sin_addr), ip_buf->h_addr_list[0], ip_buf->h_length);
+        dest_addr->sin_family = ip_buf->h_addrtype;
         return 0;
     }
-    else
+    else //В случае ошибки
     {
         *program_error_code=102;
         return 1;

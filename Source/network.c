@@ -102,7 +102,7 @@ int nw_get_reply(SOCKET ping_socket,struct sockaddr_in source_addr, struct IPHea
         switch(select(ping_socket+1, &socket_descriptor, 0, 0, &time_for_timout))
         {
             case 0:
-                *program_error_code=104;
+                *program_error_code=-1;
                 return 1;
             case -1:
                 *program_error_code=105;

@@ -30,8 +30,41 @@ int log_open_file(FILE* *log_file, char* params_log_path,char* params_address, i
         }
     }
 }
-int log_write(){
-    return 0;
+int log_write_error(FILE* logfile, int program_error_code, int* log_error_code)
+{
+    int wrote=0;
+    switch(program_error_code){
+        case 101:
+            wrote=fprintf(logfile,"[] An error has occurred while opening a socket. WSA error code %d\n", WSAGetLastError());
+            break;
+        case 102:
+            wrote=fprintf(logfile,"[] An error has occurred while trying to recognize the host\n");
+            break;
+        case 103:
+            wrote=fprintf(logfile,"[] An error has occurred while trying to send packet. WSA error code %d\n",WSAGetLastError());
+            break;
+        case 105:
+            wrote=fprintf(logfile,"[] An error has occurred. There was a reply waiting timout\n");
+            break;
+        case 106:
+            wrote=fprintf(logfile,"[] An error has occurred while trying to receive packet. WSA error code %d\n",WSAGetLastError());
+            break;
+        case 107:
+            wrote=fprintf(logfile,"[] Program stopped because user entered wrong parameters. Usage: ping [host] [log file full path]\n");
+            break;
+        default:
+            wrote=fprintf(logfile,"[] Program stopped because of unknown error has occurred\n");
+            break;
+    }
+    if(wrote==0)
+    {
+      *log_error_code=errno;
+      return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 int log_diagnostics(int log_error_code){
     switch(log_error_code){

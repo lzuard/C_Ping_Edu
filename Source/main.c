@@ -42,42 +42,6 @@ FILE* log_file;                 // Pointer to the log file
 
 void stop_program()
 {
-    printf("Program stopped ");
-    switch(program_error_code){
-        case 0:
-            printf("");
-            break;
-        case 101:
-            printf("due to socket open error #%d ", WSAGetLastError());
-            break;
-        case 102:
-            printf("due to error on host recognition ");
-            break;
-        case 103:
-            printf("due to sending WSA error %d ", WSAGetLastError());
-            break;
-        case 104:
-            printf("due to wrong ICMP packet checksum\n");
-            break;
-        case 105:
-            printf("due to reply waiting timeout\n");
-            break;
-        case 106:
-            printf("due to receiving reply, WSA error %d\n",WSAGetLastError());
-            break;
-        case 107:
-            printf("due to invalid parameters. Usage: ping [host] [log file full path]\n");
-            break;
-        case 108:
-            printf("due to log file open error\n");
-            break;
-        case 109:
-            printf("due to error while writing log\n");
-            break;
-        default:
-            printf("due to unknown issue\n");
-            break;
-    }
     fclose(log_file);
     exit(0);
 }
@@ -105,38 +69,37 @@ int main(int argc, char *argv[])
                     switch(nw_check_host(params_address,ttl,&dest_addr,&wsaData,&ping_socket, &program_error_code))      // check host
                     {
                         case 2:                                                                                                         //error on host check
-//                            if(log_write()!=0){
-//                                log_diagnostics();
-//                            }
-//                            stop_program();
+                            if(log_write_error(log_file,program_error_code,&log_error_code)!=0)
+                            {
+                                log_diagnostics(log_error_code);
+                            }
+                            stop_program();
                             break;
                         case 1:                                                                                                 // host is domain
                             switch(nw_get_ip(params_address,&dest_addr,&program_error_code))        // get ip
                             {
                                 case 1:
-//                                    printf("wrong host");
-//                                    if(log_write()!=0){
-//                                        log_diagnostics();
-//                                    }
-//                                    stop_program();
+                                    if(log_write_error(log_file,program_error_code,&log_error_code)!=0)
+                                    {
+                                        log_diagnostics(log_error_code);
+                                    }
+                                    stop_program();
                                     break;
                                 case 0:
                                     while (packets_sent<max_packets_sent)
                                     {
                                         start_time_ms=u_get_cur_time_ms();
-                                        //printf("[Log] Sending packet %d of %d\n",packets_sent+1,max_packets_sent);////////////////////////////////////////////
                                         switch (nw_send_request(ping_socket, dest_addr, send_buf, packet_size,&program_error_code, &bytes_sent)) //send
                                         {
                                             case 1:
-//                                                printf("error on sent\n");
-//                                                if (log_write() != 0) {
-//                                                    log_diagnostics();
-//                                                }
-//                                                stop_program();
+                                                if(log_write_error(log_file,program_error_code,&log_error_code)!=0)
+                                                {
+                                                    log_diagnostics(log_error_code);
+                                                }
+                                                stop_program();
                                                 break;
                                             case 0:
                                                 packets_sent++;
-                                                //printf("sent %d bytes\n", bytes_sent);
                                                 switch(nw_get_reply(ping_socket,dest_addr,recv_buf,packet_size,&program_error_code, &result))
                                                 {
                                                     case 0:
@@ -144,7 +107,11 @@ int main(int argc, char *argv[])
                                                         //printf("[Log] Got packet %d of %d in %d ms\n",packets_sent,max_packets_sent,u_get_cur_time_ms()-start_time_ms);////////////////////////////////////////////
                                                         break;
                                                     default:
-                                                        printf("error on getting reply\n");
+                                                        if(log_write_error(log_file,program_error_code,&log_error_code)!=0)
+                                                        {
+                                                            log_diagnostics(log_error_code);
+                                                        }
+                                                        stop_program();
                                                         break;
                                                 }
                                                 break;
@@ -156,20 +123,18 @@ int main(int argc, char *argv[])
                             while (packets_sent<max_packets_sent)
                             {
                                 start_time_ms=u_get_cur_time_ms();
-                                //printf("[Log] Sending packet %d of %d\n",packets_sent+1,max_packets_sent);////////////////////////////////////////////
                                 switch (nw_send_request(ping_socket, dest_addr, send_buf, packet_size,&program_error_code, &bytes_sent)) //send
                                 {
                                     case 1:
-//                                        printf("error on sent\n");
-//                                        if (log_write() != 0) {
-//                                            log_diagnostics();
-//                                        }
-//                                        stop_program();
+                                        if(log_write_error(log_file,program_error_code,&log_error_code)!=0)
+                                        {
+                                            log_diagnostics(log_error_code);
+                                        }
+                                        stop_program();
                                         break;
                                     case 0:
 
                                         packets_sent++;
-                                        //printf("sent %d bytes\n", bytes_sent);
                                         switch(nw_get_reply(ping_socket,dest_addr,recv_buf,packet_size,&program_error_code, &result))
                                         {
                                             case 0:
@@ -177,7 +142,11 @@ int main(int argc, char *argv[])
                                                 //printf("[Log] Got packet %d of %d in %d ms\n",packets_sent,max_packets_sent,u_get_cur_time_ms()-start_time_ms);////////////////////////////////////////////
                                                 break;
                                             default:
-                                                printf("error on getting reply\n");
+                                                if(log_write_error(log_file,program_error_code,&log_error_code)!=0)
+                                                {
+                                                    log_diagnostics(log_error_code);
+                                                }
+                                                stop_program();
                                                 break;
                                         }
                                         break;

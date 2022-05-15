@@ -29,6 +29,7 @@ int program_error_code = 0; // Program execution error code
 int log_error_code = 0;    // Log work error code
 char *params_address;       // User input destination address
 char *params_log_path;      // User input log file path
+char *res_buf;
 
 //Structures
 struct ICMPHeader send_buf;     // Buffer for send packet
@@ -58,7 +59,6 @@ int main(int argc, char *argv[])
             stop_program();
             break;
         case 0:
-            printf("adr: %s, log:%s\n",params_address,params_log_path);//////////////////////////////////////////////////////
             switch(log_open_file(&log_file,params_log_path,params_address, &program_error_code,&log_error_code))      //Open log file
             {
                 case 1:
@@ -100,12 +100,13 @@ int main(int argc, char *argv[])
                                                 break;
                                             case 0:
                                                 packets_sent++;
+                                                printf("%d\n",packets_sent);
                                                 switch(nw_get_reply(ping_socket,dest_addr,recv_buf,packet_size,&program_error_code, &result))
                                                 {
                                                     case 0:
-                                                        nw_show_result(recv_buf,dest_addr,start_time_ms,result,packet_size);                                                        //printf("[Log] Got packet %d of %d in %d ms\n",packets_sent,max_packets_sent,u_get_cur_time_ms()-start_time_ms);////////////////////////////////////////////
-                                                        break;
-                                                    default:
+                                                        u_show_result(result, inet_ntoa(dest_addr.sin_addr),u_get_cur_time_ms()-start_time_ms,packet_size,recv_buf->ttl);
+                                                        log_write_result(log_file,result, inet_ntoa(dest_addr.sin_addr),u_get_cur_time_ms()-start_time_ms,packet_size,recv_buf->ttl);
+                                                        break;                                                    default:
                                                         if(log_write_error(log_file,program_error_code,&log_error_code)!=0)
                                                         {
                                                             log_diagnostics(log_error_code);
@@ -121,7 +122,6 @@ int main(int argc, char *argv[])
                         case 0:                                                                                                                                         // host is ip
                             while (packets_sent<max_packets_sent)
                             {
-                                start_time_ms=u_get_cur_time_ms();
                                 switch (nw_send_request(ping_socket, dest_addr, send_buf, packet_size,&program_error_code, &bytes_sent)) //send
                                 {
                                     case 1:
@@ -137,8 +137,8 @@ int main(int argc, char *argv[])
                                         switch(nw_get_reply(ping_socket,dest_addr,recv_buf,packet_size,&program_error_code, &result))
                                         {
                                             case 0:
-                                                nw_show_result(recv_buf,dest_addr,start_time_ms,result,packet_size);
-                                                //printf("[Log] Got packet %d of %d in %d ms\n",packets_sent,max_packets_sent,u_get_cur_time_ms()-start_time_ms);////////////////////////////////////////////
+                                                u_show_result(result, inet_ntoa(dest_addr.sin_addr),u_get_cur_time_ms()-start_time_ms,packet_size,recv_buf->ttl);
+                                                log_write_result(log_file,result, inet_ntoa(dest_addr.sin_addr),u_get_cur_time_ms()-start_time_ms,packet_size,recv_buf->ttl);
                                                 break;
                                             default:
                                                 if(log_write_error(log_file,program_error_code,&log_error_code)!=0)

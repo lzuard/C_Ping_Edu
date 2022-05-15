@@ -128,28 +128,5 @@ int nw_get_reply(SOCKET ping_socket,struct sockaddr_in source_addr, struct IPHea
     }
 }
 
-void nw_show_result(struct IPHeader *recv_buf, struct sockaddr_in  dest_addr, ULONG start_time, int result, int packet_size)
-{
-    printf("Sent %d bytes to ",packet_size);
-    printf("%s: ", inet_ntoa(dest_addr.sin_addr));
-
-    switch(result)
-    {
-        case ICMP_ECHO_REPLY:
-            printf("received %d bytes ",packet_size);
-            printf("in %d ms ",u_get_cur_time_ms()-start_time);
-            printf("TTL: %d\n",recv_buf->ttl);
-            break;
-        case ICMP_DEST_UNREACH:
-            printf(" Destination unreachable\n");
-            break;
-        case ICMP_TTL_EXPIRE:
-            printf(" TTL expired\n");
-            break;
-        default: // Unknown ICMP packet
-            printf("Got unknown ICMP packet\n");
-            break;
-    }
-}
 
 

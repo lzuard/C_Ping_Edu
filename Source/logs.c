@@ -66,6 +66,33 @@ int log_write_error(FILE* logfile, int program_error_code, int* log_error_code)
         return 0;
     }
 }
+int log_write_result(FILE* logfile,int result, char* host, ULONG time_ms, int packet_size, byte ttl)
+{
+    int wrote=0;
+    switch(result)
+    {
+        case 0: //echo reply
+            wrote=fprintf(logfile,"Sent %d bytes to %s received %d bytes in %d ms TTL: %d\n",packet_size, host, packet_size, time_ms,ttl);
+            break;
+        case 3: //unreach
+            wrote=fprintf(logfile,"Sent %d bytes to %s Destination unreachable \n",packet_size, host);
+            break;
+        case 1: //ttl exp
+            wrote=fprintf(logfile,"Sent %d bytes to %s TTL expired\n",packet_size, host);
+            break;
+        default: // Unknown ICMP packet
+            wrote=fprintf(logfile,"Sent %d bytes to %s Got unknown ICMP packet\n",packet_size, host);
+            break;
+    }
+    if(wrote==0)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
 int log_diagnostics(int log_error_code){
     switch(log_error_code){
         case -1:

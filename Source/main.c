@@ -71,6 +71,9 @@ void stop_program()
         case 108:
             printf("due to log file open error\n");
             break;
+        case 109:
+            printf("due to error while writing log\n");
+            break;
         default:
             printf("due to unknown issue\n");
             break;

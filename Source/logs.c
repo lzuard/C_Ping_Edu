@@ -5,10 +5,10 @@
 
 #include "../Headers/logs.h"
 
-int log_open_file(FILE* *log_file, char* log_path, int *program_error_code, int *log_error_code)
+int log_open_file(FILE* *log_file, char* params_log_path,char* params_address, int *program_error_code, int *log_error_code)
 {
     int write_result=0;
-    *log_file=fopen(log_path,"a");
+    *log_file=fopen(params_log_path,"a");
     if(*log_file==NULL)
     {
         *program_error_code=108;
@@ -17,7 +17,7 @@ int log_open_file(FILE* *log_file, char* log_path, int *program_error_code, int 
     }
     else
     {
-        write_result=fprintf(*log_file,"\n=========================================================\n[] New program start\n");
+        write_result=fprintf(*log_file,"\n=========================================================\n[] New program start with parameters: host: %s, log: %s\n",params_address,params_log_path);
         if(write_result<0)
         {
             *program_error_code=109;

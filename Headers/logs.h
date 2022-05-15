@@ -9,7 +9,7 @@
 
 #endif //PING_LOGS_H
 
-int log_open_file(FILE* *log_file, char* log_path, int *program_error_code, int *log_error_code);
+int log_open_file(FILE* *log_file, char* params_log_path,char* params_address, int *program_error_code, int *log_error_code);
 int log_write_step();
 int log_write_result();
 int log_diagnostics(int log_error_code);

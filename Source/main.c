@@ -78,16 +78,6 @@ void stop_program()
             printf("due to unknown issue\n");
             break;
     }
-    switch(log_error_code){
-        case -1:
-            printf("Log file wasn't opened\n");
-            break;
-        case 0:
-            printf("All logs have been saved in %s\n",params_log_path);
-            break;
-        default:
-            printf("Unknown issue caused error on writing logs\n");
-    }
     fclose(log_file);
     exit(0);
 }
@@ -105,7 +95,7 @@ int main(int argc, char *argv[])
             break;
         case 0:
             printf("adr: %s, log:%s\n",params_address,params_log_path);//////////////////////////////////////////////////////
-            switch(log_open_file(&log_file,params_log_path,&program_error_code,&log_error_code))      //Open log file
+            switch(log_open_file(&log_file,params_log_path,params_address, &program_error_code,&log_error_code))      //Open log file
             {
                 case 1:
                     log_diagnostics(log_error_code);

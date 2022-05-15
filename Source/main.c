@@ -100,13 +100,17 @@ int main(int argc, char *argv[])
                                                 break;
                                             case 0:
                                                 packets_sent++;
-                                                printf("%d\n",packets_sent);
                                                 switch(nw_get_reply(ping_socket,dest_addr,recv_buf,packet_size,&program_error_code, &result))
                                                 {
                                                     case 0:
                                                         u_show_result(result, inet_ntoa(dest_addr.sin_addr),u_get_cur_time_ms()-start_time_ms,packet_size,recv_buf->ttl);
-                                                        log_write_result(log_file,result, inet_ntoa(dest_addr.sin_addr),u_get_cur_time_ms()-start_time_ms,packet_size,recv_buf->ttl);
-                                                        break;                                                    default:
+                                                        if(log_write_result(log_file,result, inet_ntoa(dest_addr.sin_addr),u_get_cur_time_ms()-start_time_ms,packet_size,recv_buf->ttl)!=0)
+                                                        {
+                                                            log_diagnostics(log_error_code);
+                                                            stop_program();
+                                                        }
+                                                        break;
+                                                    default:
                                                         if(log_write_error(log_file,program_error_code,&log_error_code)!=0)
                                                         {
                                                             log_diagnostics(log_error_code);

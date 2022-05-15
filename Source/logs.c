@@ -5,9 +5,17 @@
 
 #include "../Headers/logs.h"
 
+
 int log_open_file(FILE* *log_file, char* params_log_path,char* params_address, int *program_error_code, int *log_error_code)
 {
     int write_result=0;
+    time_t rawtime;
+    struct tm * timeinfo;
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+
     *log_file=fopen(params_log_path,"a");
     if(*log_file==NULL)
     {
@@ -17,8 +25,15 @@ int log_open_file(FILE* *log_file, char* params_log_path,char* params_address, i
     }
     else
     {
-        write_result=fprintf(*log_file,"\n=========================================================\n[] New program start with parameters: host: %s, log: %s\n",params_address,params_log_path);
-        if(write_result<0)
+        if(fprintf(*log_file,"\n=========================================================\n[%d.%d.%d %d:%d:%d]",timeinfo->tm_mday,
+                timeinfo->tm_mon + 1, timeinfo->tm_year + 1900,
+                timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec)<0)
+        {
+            *program_error_code=109;
+            *log_error_code=errno;
+            return 1;
+        }
+        if(fprintf(*log_file," New program start with parameters: host: %s, log: %s\n",params_address,params_log_path)<0)
         {
             *program_error_code=109;
             *log_error_code=errno;

@@ -8,11 +8,6 @@
 
 
 
-
-#ifdef _MSC_VER
-#pragma pack(1)
-#endif
-
 int nw_get_ip(char *host,struct sockaddr_in *dest_addr, int *program_error_code){
     struct hostent *domain_address;
     domain_address = gethostbyname(host);

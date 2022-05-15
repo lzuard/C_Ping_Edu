@@ -5,28 +5,22 @@
 //Standard C libraries
 #include <winsock2.h>   // Sockets library
 #include <windows.h>    // Win32 api functions
-#include <ws2tcpip.h>   // TODO: delete
-#include <iphlpapi.h>   // TODO: delete
 #include <stdio.h>      // Standard I/O functions
 #include <stdlib.h>     // Standard functions TODO: change desc
 
 //Local project headers
-#include "../Headers/settings.h"    // TODO: delete
-#include "../Headers/console.h"     // TODO: delete
+
 #include "../Headers/network.h"     // Network functions
 #include "../Headers/utils.h"       // Helpful utils
 #include "../Headers/logs.h"        // Log functions
-#ifdef _MSC_VER
 
-#pragma pack(1)
-#endif
 
 //Variables
 ULONG start_time_ms;        // Ping send time in ms
 SOCKET ping_socket;         // Socket for network communication
 int packets_sent = 0;       // Number of sent packets
 int max_packets_sent = 4;   // Maximum number of packets to be sent
-int packet_size = DEFAULT_PACKET_SIZE;     // ICMP packet size
+int packet_size = 32;     // ICMP packet size
 int bytes_sent=0;           // Bytes have been sent
 int ttl = 128;              // ICMP packet TTL
 int result=0;               // ICMP packet decode result
@@ -34,8 +28,8 @@ int timeout = 1000;         // Timout for echo-reply waiting in ms
 int program_error_code = 0; // Program execution error code
 int log_error_code = -1;    // Log work error code
 
-char *params_address="192.168.0.13";    // User input destination address TODO:debug delete arrays
-char *params_log_path="nothing";       // User input log file path TODO:debug delete arrays
+char *params_address;    // User input destination address
+char *params_log_path;       // User input log file path
 
 //Structures
 struct ICMPHeader send_buf;     // Buffer for send packet
@@ -47,13 +41,6 @@ struct sockaddr_in source_addr; // Local device address
 
 void stop_program()
 {
-    //printf("[Debug info] Trying to stop the program\n");/////////////////////////////////////
-    WSACleanup();
-    //printf("[Debug info] WSA cleaned up\n");/////////////////////////////////////
-
-    //free(recv_buf);
-    //printf("[Debug info] Memory cleaned up\n");/////////////////////////////////////
-
     printf("Program stopped ");
     switch(program_error_code){
         case 0:
@@ -91,24 +78,22 @@ void stop_program()
         default:
             printf("Unknown issue caused error on writing logs\n");
     }
-    exit(program_error_code);
+    exit(0);
 }
 
 
-void main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-    params_address=argv[1];
-
     recv_buf = malloc(sizeof(struct IPHeader));
 
-
-    switch(u_check_params(params_address))  //check params
+    switch(u_check_params(argc, argv, &params_address, &params_log_path))  //check params
     {
         case 1:
             printf("wrong params\n");
             stop_program();
             break;
         case 0:
+            printf("adr: %s, log:%s\n",params_address,params_log_path);//////////////////////////////////////////////////////
             switch(log_open_file(params_log_path))      //Open log file
             {
                 case 1:
@@ -135,7 +120,6 @@ void main(int argc, char *argv[])
                                     stop_program();
                                     break;
                                 case 0:
-
                                     while (packets_sent<max_packets_sent)
                                     {
                                         start_time_ms=u_get_cur_time_ms();
@@ -150,7 +134,6 @@ void main(int argc, char *argv[])
                                                 stop_program();
                                                 break;
                                             case 0:
-
                                                 packets_sent++;
                                                 //printf("sent %d bytes\n", bytes_sent);
                                                 switch(nw_get_reply(ping_socket,dest_addr,recv_buf,packet_size,&program_error_code, &result))
@@ -204,5 +187,5 @@ void main(int argc, char *argv[])
             }
     }
     stop_program();
-
+    return 0;
 }

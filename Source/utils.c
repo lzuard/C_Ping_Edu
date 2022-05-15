@@ -1,6 +1,6 @@
 //IO validation part
 //Headers in validation.h
-
+#include <unistd.h>
 #include "../Headers/utils.h"
 
 ULONG u_get_cur_time_ms()
@@ -10,9 +10,25 @@ ULONG u_get_cur_time_ms()
     return now.wMilliseconds;
 }
 
-int u_check_params(char input[])
+int u_check_params(int argc, char *argv[], char* *params_address, char* *params_log_path)
 {
-    return 0; //TODO: add params_address check
+    if(argc<2 || argc>3) //argv[0] - exe file path
+    {
+        return 1;
+    }
+    else
+    {
+        *params_address=argv[1];
+        if (argc==3)
+        {
+            *params_log_path=argv[2];
+        }
+        else
+        {
+            *params_log_path=getcwd(NULL,128);
+        }
+        return 0;
+    }
 }
 
 USHORT u_ip_checksum(USHORT *buffer, int size)

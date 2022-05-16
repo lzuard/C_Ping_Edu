@@ -1,6 +1,6 @@
 // Декларация сетевых структур и функций
 
-#include <winsock2.h>   / Сокеты Windows
+#include <winsock2.h>   // Сокеты Windows
 #include <windows.h>    // Функции Win32 api, необходимы для использования сокетов
 #include <ws2tcpip.h>   // Функции работы с Windows socket
 #include <iphlpapi.h>   // Функции работы с ip

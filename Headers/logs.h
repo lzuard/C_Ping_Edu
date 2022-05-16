@@ -3,6 +3,7 @@
 #include <stdio.h>      // Стандартные функции ввода/вывода
 #include <errno.h>      // Стандартные функции работы с ошибками
 #include <windows.h>    // Функции Win32 api
+#include <time.h>       // Функции получения времени
 
 #ifndef PING_LOGS_H
 #define PING_LOGS_H

@@ -1,6 +1,5 @@
 // Файл с вспомогательными функциями
 
-#include <unistd.h>             // Cтандартные символические константы и типы
 #include "../Headers/utils.h"   //Декларация вспомогательных функций
 
 // Декларация функций и процедур
@@ -13,6 +12,7 @@
 */
 void u_stop_program(int program_error_code, int log_error_code, FILE* *log_file)
 {
+    //printf("Debug-entered u_stop_program with program error code: %d, log error code %d\n",program_error_code,log_error_code);
     if(program_error_code==-1) //В случае, если введены неверные параметры, выводим в консоль
     {
         printf("Program stopped because user entered wrong parameters. Usage: ping [host] [log file full path]\n");
@@ -23,8 +23,10 @@ void u_stop_program(int program_error_code, int log_error_code, FILE* *log_file)
     }
     if(*log_file==NULL)
     {
+        //printf("Debug-u_stop_program-trying to close log_file");
         fclose(*log_file);   //Закрыть файл лога
     }
+    //printf("program closing");
     exit(0);           //Завершить выполнение
 }
 

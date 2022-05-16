@@ -1,6 +1,5 @@
 // Файл функций работы с файлом логов
 
-#include <time.h> // Функции получения времени
 
 #include "../Headers/logs.h" // Функции лога
 
@@ -18,28 +17,32 @@
 */
 int log_open_file(FILE* *log_file, char* params_log_path,char* params_address, int *program_error_code, int *log_error_code)
 {
+    //printf("Debug-entered log_open_file");
     time_t rawtime;         // Время
     struct tm* timeinfo;   // Подробное время
 
     time(&rawtime);                 // Привязка к системному времени
     timeinfo = localtime(&rawtime); // Получение времени
 
-
+    //printf("Debug-log_open_file-trying to open");
     // Открытие файла логов
     *log_file=fopen(params_log_path,"a");
     if(*log_file==NULL) // Ошибка открытия файла логов
     {
+        //printf("Debug-log_open_file-open error, exit code 1");
         *program_error_code=108;
         *log_error_code=errno;
         return 1;
     }
     else //Файл открыт успешно
     {
+        //printf("Debug-log_open_file-open success");
         if(fprintf(*log_file,"\n=========================================================\n[%d.%d.%d %d:%d:%d]",timeinfo->tm_mday,
                 timeinfo->tm_mon + 1, timeinfo->tm_year + 1900,
                 timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec)<0)
         {
             //  Ошибка записи в файл логов
+            //printf("Debug-log_open_file-first write error, exit code 1");
             *program_error_code=109;
             *log_error_code=errno;
             return 1;
@@ -48,6 +51,7 @@ int log_open_file(FILE* *log_file, char* params_log_path,char* params_address, i
         if(fprintf(*log_file," New program start with parameters: host: %s, log: %s\n",params_address,params_log_path)<0)
         {
             // Ошибка записи в файл логов
+            //printf("Debug-log_open_file-second write error, exit code 1");
             *program_error_code=109;
             *log_error_code=errno;
             return 1;
@@ -55,6 +59,7 @@ int log_open_file(FILE* *log_file, char* params_log_path,char* params_address, i
         else
         {
             // Запись успешна
+            //printf("Debug-exiting log_open_file with code 0");
             return 0;
         }
     }
@@ -69,6 +74,7 @@ int log_open_file(FILE* *log_file, char* params_log_path,char* params_address, i
 */
 int log_write_error(FILE* log_file, int program_error_code, int* log_error_code)
 {
+    //printf("Debug-entered log_write_error with program error %d",program_error_code);
     int wrote=0; // Код возврата записи
     switch(program_error_code){
         case 101:   // Ошибка открытия сокета
@@ -96,10 +102,12 @@ int log_write_error(FILE* log_file, int program_error_code, int* log_error_code)
     if(wrote==0)    // Ошибка записи в лог
     {
       *log_error_code=errno;
+      //printf("Debug-log_write_error- write error, exit code 1");
       return 1;
     }
     else
     {   //Запись успешна
+        //printf("Debug-log_write_error- write success, exit code 0");
         return 0;
     }
 }
@@ -116,6 +124,7 @@ int log_write_error(FILE* log_file, int program_error_code, int* log_error_code)
 */
 int log_write_result(FILE* logfile,int result, char* host, ULONG time_ms, int packet_size, byte ttl)
 {
+    //printf("Debug-entered log_write_result");
     int wrote=0;    // Код возврата записи
     switch(result)
     {
@@ -134,10 +143,13 @@ int log_write_result(FILE* logfile,int result, char* host, ULONG time_ms, int pa
     }
     if(wrote==0) // Ошибка записи в лог
     {
+        //TODO: add log_error_code
+        //printf("Debug-log_write_error- write error, exit code 1");
         return 1;
     }
     else    //Запись успешна
     {
+        //printf("Debug-log_write_error- write success, exit code 0");
         return 0;
     }
 }
@@ -146,7 +158,9 @@ int log_write_result(FILE* logfile,int result, char* host, ULONG time_ms, int pa
 /* Принимает параметры:
    * int log_error_code - код ошибки лога.
 */
-void log_diagnostics(int log_error_code){
+void log_diagnostics(int log_error_code) //TODO: implement all windows codes
+{
+    //printf("Debug-entered log_diagnostics with code %d", log_error_code);
     switch(log_error_code){ //Обработка типа ошибки
         case -1: // Файл логов не был открыт
             printf("Log file wasn't opened\n");

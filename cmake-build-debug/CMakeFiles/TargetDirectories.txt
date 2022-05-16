@@ -1,3 +1,3 @@
-C:/Users/maril/CLionProjects/MTUCI_C_Ping/cmake-build-debug/CMakeFiles/Ping.dir
-C:/Users/maril/CLionProjects/MTUCI_C_Ping/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/maril/CLionProjects/MTUCI_C_Ping/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+C:/Users/sasha/CLionProjects/Ping/cmake-build-debug/CMakeFiles/Ping.dir
+C:/Users/sasha/CLionProjects/Ping/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/sasha/CLionProjects/Ping/cmake-build-debug/CMakeFiles/rebuild_cache.dir

@@ -2,6 +2,7 @@
 
 #include <windows.h> //Библиотека функций win32 api
 #include <stdio.h>   //Стандартные функции ввода/вывода
+#include <unistd.h>  // Cтандартные символические константы и типы
 
 
 #ifndef PING_UTILS_H

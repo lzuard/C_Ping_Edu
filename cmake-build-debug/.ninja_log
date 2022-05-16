@@ -1,14 +1,12 @@
 # ninja log v5
-63	503	6733690164427917	CMakeFiles/Ping.dir/Source/validation.c.obj	4b9a8d8088e24f8
-1271	1440	6743545135375207	Ping.exe	98ff2e7318684635
-3	454	6743545902220009	build.ninja	aaba59f721719e6
-33	1837	6741411205559049	CMakeFiles/Ping.dir/Source/console.c.obj	c849f4972c4e2fa8
-3	1271	6743545133725974	CMakeFiles/Ping.dir/Source/main.c.obj	5d1ede168d3f65e7
-23	1157	6743545132476697	CMakeFiles/Ping.dir/Source/logs.c.obj	9c09c7f951d3e426
-21	1098	6743545131927005	CMakeFiles/Ping.dir/Source/utils.c.obj	4f976243b209c302
-43	1284	6741411199382584	CMakeFiles/Ping.dir/Source/Playground.c.obj	193e77a008b891d9
-25	1223	6743545133236257	CMakeFiles/Ping.dir/Source/network.c.obj	43b09f46d3a4e462
-2	343	6743545902220009	build.ninja	aaba59f721719e6
-3	977	6743545912704017	CMakeFiles/Ping.dir/Source/network.c.obj	43b09f46d3a4e462
-5	1025	6743545913193734	CMakeFiles/Ping.dir/Source/main.c.obj	5d1ede168d3f65e7
-1025	1208	6743545914992703	Ping.exe	98ff2e7318684635
+1227	1442	6743877598715888	Ping.exe	12544d88c1092073
+2	343	6744297042280837	build.ninja	aaba59f721719e6
+3	1218	6743877596507155	CMakeFiles/Ping.dir/Source/main.c.obj	5d1ede168d3f65e7
+20	1100	6743877595217896	CMakeFiles/Ping.dir/Source/logs.c.obj	9c09c7f951d3e426
+22	1097	6743877595217896	CMakeFiles/Ping.dir/Source/utils.c.obj	4f976243b209c302
+24	1226	6743877596597107	CMakeFiles/Ping.dir/Source/network.c.obj	43b09f46d3a4e462
+19	1266	6744315634872876	CMakeFiles/Ping.dir/Source/logs.c.obj	9c09c7f951d3e426
+22	1283	6744315635032787	CMakeFiles/Ping.dir/Source/utils.c.obj	4f976243b209c302
+24	1288	6744315635102748	CMakeFiles/Ping.dir/Source/network.c.obj	43b09f46d3a4e462
+4	1359	6744315635822337	CMakeFiles/Ping.dir/Source/main.c.obj	5d1ede168d3f65e7
+1360	1580	6744315637981223	Ping.exe	12544d88c1092073

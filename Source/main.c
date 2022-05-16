@@ -87,7 +87,7 @@ void main(int argc, char *argv[])
                                                         //Выводим результат получения в консоль
                                                         u_show_result(receive_result, inet_ntoa(dest_addr.sin_addr), u_get_cur_time_ms() - start_time_ms, packet_size, recv_buf->ttl);
                                                         //Пытаемся вывести результат получения в лог
-                                                        if(log_write_result(log_file, receive_result, inet_ntoa(dest_addr.sin_addr), u_get_cur_time_ms() - start_time_ms, packet_size, recv_buf->ttl) != 0)
+                                                        if(log_write_result(log_file,&log_error_code, receive_result, inet_ntoa(dest_addr.sin_addr), u_get_cur_time_ms() - start_time_ms, packet_size, recv_buf->ttl) != 0)
                                                         {
                                                             log_diagnostics(log_error_code);
                                                             u_stop_program(program_error_code, log_error_code, &log_file);
@@ -130,7 +130,7 @@ void main(int argc, char *argv[])
                                         {
                                             case 0: //Ответ получен
                                                 u_show_result(receive_result, inet_ntoa(dest_addr.sin_addr), u_get_cur_time_ms() - start_time_ms, packet_size, recv_buf->ttl);
-                                                if(log_write_result(log_file, receive_result, inet_ntoa(dest_addr.sin_addr), u_get_cur_time_ms() - start_time_ms, packet_size, recv_buf->ttl) != 0)
+                                                if(log_write_result(log_file,&log_error_code, receive_result, inet_ntoa(dest_addr.sin_addr), u_get_cur_time_ms() - start_time_ms, packet_size, recv_buf->ttl) != 0)
                                                 {
                                                     log_diagnostics(log_error_code);
                                                     u_stop_program(program_error_code, log_error_code, &log_file);

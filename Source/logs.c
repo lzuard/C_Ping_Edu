@@ -31,7 +31,7 @@ int log_open_file(FILE* *log_file, char* params_log_path,char* params_address, i
     {
         //printf("Debug-log_open_file-open error, exit code 1");
         *program_error_code=108;
-        *log_error_code=errno;
+        *log_error_code=(int)GetLastError();
         return 1;
     }
     else //Файл открыт успешно
@@ -44,7 +44,7 @@ int log_open_file(FILE* *log_file, char* params_log_path,char* params_address, i
             //  Ошибка записи в файл логов
             //printf("Debug-log_open_file-first write error, exit code 1");
             *program_error_code=109;
-            *log_error_code=errno;
+            *log_error_code=(int)GetLastError();
             return 1;
         }
         //  Запись в файл логов параметров программы
@@ -53,7 +53,7 @@ int log_open_file(FILE* *log_file, char* params_log_path,char* params_address, i
             // Ошибка записи в файл логов
             //printf("Debug-log_open_file-second write error, exit code 1");
             *program_error_code=109;
-            *log_error_code=errno;
+            *log_error_code=(int)GetLastError();
             return 1;
         }
         else
@@ -101,7 +101,7 @@ int log_write_error(FILE* log_file, int program_error_code, int* log_error_code)
     }
     if(wrote==0)    // Ошибка записи в лог
     {
-      *log_error_code=errno;
+      *log_error_code=(int)GetLastError();
       //printf("Debug-log_write_error- write error, exit code 1");
       return 1;
     }
@@ -115,6 +115,7 @@ int log_write_error(FILE* log_file, int program_error_code, int* log_error_code)
 // Декларация функции записи результата работы программы в файл логов
 /* Принимает параметры:
    * FILE* logfile - указатель на файл лога;
+   * int *log_error_code - указатель на код ошибки лога
    * int result - результат расшифровки полученного ICMP пакета;
    * char* host - адрес хоста;
    * ULONG time_ms - время отправки эхо-запроса;
@@ -122,7 +123,7 @@ int log_write_error(FILE* log_file, int program_error_code, int* log_error_code)
    * byte ttl - TTL отправляемых пакетов.
    Возвращает: 0 - при успехе; 1 - при ошибке.
 */
-int log_write_result(FILE* logfile,int result, char* host, ULONG time_ms, int packet_size, byte ttl)
+int log_write_result(FILE* logfile,int *log_error_code, int result, char* host, ULONG time_ms, int packet_size, byte ttl)
 {
     //printf("Debug-entered log_write_result");
     int wrote=0;    // Код возврата записи
@@ -143,7 +144,7 @@ int log_write_result(FILE* logfile,int result, char* host, ULONG time_ms, int pa
     }
     if(wrote==0) // Ошибка записи в лог
     {
-        //TODO: add log_error_code
+        *log_error_code=(int)GetLastError();
         //printf("Debug-log_write_error- write error, exit code 1");
         return 1;
     }
@@ -161,12 +162,55 @@ int log_write_result(FILE* logfile,int result, char* host, ULONG time_ms, int pa
 void log_diagnostics(int log_error_code) //TODO: implement all windows codes
 {
     //printf("Debug-entered log_diagnostics with code %d", log_error_code);
+    printf("Log error. Windows error code %d: ",log_error_code);
     switch(log_error_code){ //Обработка типа ошибки
-        case -1: // Файл логов не был открыт
-            printf("Log file wasn't opened\n");
+        case 2:
+            printf("Can't find the file\n");
+            break;
+        case 4:
+            printf("The system can't open the file\n");
+            break;
+        case 15:
+            printf("The system can't find the drive specified\n");
+            break;
+        case 25:
+            printf("Cannot find the specified area or track on disk\n");
+            break;
+        case 26:
+            printf("No access to disk\n");
+            break;
+        case 32:
+            printf("Current process can't open the file because it's occupied by another process\n");
+            break;
+        case 33:
+            printf("Current process can't open the file because it's part is locked by another process\n");
+            break;
+        case 38:
+            printf("End of the file reached\n");
+            break;
+        case 39:
+            printf("No disk space left\n");
+            break;
+        case 108:
+            printf("Disk is busy or locked by another process\n");
+            break;
+        case 110:
+            printf("The system can't open the device or file\n");
+            break;
+        case 183:
+            printf("Can't create a file, it already exists\n");
+            break;
+        case 303:
+            printf("Can't open the file because it's int the process being delete\n");
+            break;
+        case 2229:
+            printf("Disk I/o error\n");
+            break;
+        case 3064:
+            printf("Problems with the file\n");
             break;
         default: // Неизвестная ошибка
-            printf("Unknown issue caused error on writing logs\n");
+            printf(". Unknown issue\n");
             break;
     }
 }

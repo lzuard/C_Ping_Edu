@@ -1,7 +1,7 @@
 //Главный файл проекта, содержит функцию main
 
 //Подключение стандартных библиотек
-#include <winsock2.h>   // Сокетов Windows
+#include <winsock2.h>   // Сокеты Windows
 #include <windows.h>    // Функции Win32 api, необходимы для использования сокетов
 #include <stdio.h>      // Стандартные функции ввода/вывода
 #include <stdlib.h>     // Стандартные функции С
@@ -41,6 +41,10 @@ void stop_program()
     if(program_error_code==-1) //В случае, если введены неверные параметры, выводим в консоль
     {
         printf("Program stopped because user entered wrong parameters. Usage: ping [host] [log file full path]\n");
+    }
+    else if (program_error_code!=0 && log_error_code==0)
+    {
+        printf("Program stopped because an error has occured. Check log to see more details.\n");
     }
     fclose(log_file);   //Закрыть файл лога
     exit(0);           //Завершить выполнение

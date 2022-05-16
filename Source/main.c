@@ -11,56 +11,55 @@
 #include "../Headers/logs.h"        // Функции лога
 #include "../Headers/utils.h"       // Вспомогательные функции
 
-//Объявление переменных
-ULONG start_time_ms = 0;    // Время отправки эхо-запроса
-SOCKET ping_socket=0;       // Cокет для отправки и приема пакетов
-FILE* log_file=NULL;        // Указатель на файл лога
-int packets_sent = 0;       // Количество отправленных пакетов
-int max_packets_sent = 4;   // Максимальное количество пакетов для отправки
-int packet_size = 32;       // Стандартный размер ICMP пакета в байтах
-int bytes_sent=0;           // Количество отправленных байт
-int ttl = 128;              // TTL отправляемых пакетов
-int receive_result=0;       // Результат расшифровки полученного ICMP пакета
-int receive_timeout = 1000; // Максимальное время ожидания ICMP эхо-ответа в миллисекундах
-int program_error_code = 0; // Код ошибки программы
-int log_error_code = 0;     // Код ошибки лога
-char* params_address=NULL;  // Адресс назначения, полученный от пользователя
-char* params_log_path=NULL; // Полный путь к файлу лога, полученный от пользователя
+// Декларация переменных
+ULONG start_time_ms;        // Время отправки эхо-запроса
+SOCKET ping_socket;         // Cокет для отправки и приема пакетов
+FILE* log_file;             // Указатель на файл лога
+int packets_sent;           // Количество отправленных пакетов
+int max_packets_sent;       // Максимальное количество пакетов для отправки
+int packet_size;            // Стандартный размер ICMP пакета в байтах
+int bytes_sent;             // Колличество отправленных байт
+int ttl;                    // TTL отправляемых пакетов
+int receive_result;         // Результат расшифровки полученного ICMP пакета
+int program_error_code;     // Код ошибки программы
+int log_error_code;         // Код ошибки лога
+char* params_address;       // Адрес назначения, полученный от пользователя
+char* params_log_path;      // Полный путь к файлу лога, полученный от пользователя
 
-//Объявление структуры
-struct ICMPHeader send_buf;     // Буффер для отправляемого заголовка ICMP
-struct IPHeader *recv_buf;      // Буффер для поулчаемого заголовка IP
+// Декларация структур
+struct ICMPHeader send_buf;     // Буфер для отправляемого заголовка ICMP
+struct IPHeader *recv_buf;      // Буфер для поулчаемого заголовка IP
 struct WSAData wsaData;         // Структура для инициализации сокета
 struct sockaddr_in dest_addr;   // Структура для хранения адреса назначения хоста
 
-//Функции и процедуры
 
-//Процедура завершения программы
-void stop_program()
-{
-    if(program_error_code==-1) //В случае, если введены неверные параметры, выводим в консоль
-    {
-        printf("Program stopped because user entered wrong parameters. Usage: ping [host] [log file full path]\n");
-    }
-    else if (program_error_code!=0 && log_error_code==0)
-    {
-        printf("Program stopped because an error has occured. Check log to see more details.\n");
-    }
-    fclose(log_file);   //Закрыть файл лога
-    exit(0);           //Завершить выполнение
-}
-
-//Процедура main
+// Процедура main
 void main(int argc, char *argv[])
 {
-    recv_buf = malloc(sizeof(struct IPHeader));
+    //Инициализация переменных
+    params_address = NULL;  // Адрес назначения, полученный от пользователя
+    params_log_path = NULL; // Полный путь к файлу лога, полученный от пользователя
+    program_error_code = 0; // Код ошибки программы
+    log_error_code = 0;     // Код ошибки лога
+    log_file = NULL;        // Указатель на файл лога
+    ttl = 128;              // TTL отправляемых пакетов
+    ping_socket = 0;        // Cокет для отправки и приема пакетов
+    packets_sent = 0;       // Количество отправленных пакетов
+    max_packets_sent = 4;   // Максимальное количество пакетов для отправки
+    start_time_ms = 0;      // Время отправки эхо-запроса
+    packet_size = 32;       // Стандартный размер ICMP пакета в байтах
+    bytes_sent = 0;         // Колличество отправленных байт
+    receive_result = 0;     // Результат расшифровки полученного ICMP пакета
+
+    //Инициализация структуры
+    recv_buf = malloc(sizeof(struct IPHeader));  // Буфер для поулчаемого заголовка IP
 
     //Проверка входных параметров и запись в переменные
     switch(u_check_params(argc, argv, &params_address, &params_log_path))
     {
         case 1: //Введены неверные параметры
             program_error_code=-1;
-            stop_program();
+            u_stop_program(program_error_code, log_error_code, &log_file);
             break;
         case 0:
             //Открываем файл лога
@@ -68,7 +67,7 @@ void main(int argc, char *argv[])
             {
                 case 1: //Ошибка открытия файла
                     log_diagnostics(log_error_code);
-                    stop_program();
+                    u_stop_program(program_error_code, log_error_code, &log_file);
                     break;
                 case 0:
                     //Проверяем тип адреса хоста
@@ -79,7 +78,7 @@ void main(int argc, char *argv[])
                             {
                                 log_diagnostics(log_error_code);
                             }
-                            stop_program();
+                            u_stop_program(program_error_code, log_error_code, &log_file);
                             break;
                         case 1: //Адрес хоста - доменное имя
                             //Пытаемся получить Ip адрес из доменного имени
@@ -90,7 +89,7 @@ void main(int argc, char *argv[])
                                     {
                                         log_diagnostics(log_error_code);
                                     }
-                                    stop_program();
+                                    u_stop_program(program_error_code, log_error_code, &log_file);
                                     break;
                                 case 0: //Ip Получен
                                     //Цикл для отправки нескольких пакетов
@@ -106,7 +105,7 @@ void main(int argc, char *argv[])
                                                 {
                                                     log_diagnostics(log_error_code);
                                                 }
-                                                stop_program();
+                                                u_stop_program(program_error_code, log_error_code, &log_file);
                                                 break;
                                             case 0: //Пакет отправлен
                                                 //Увеличиваем счетчик отправленных пакетов
@@ -121,7 +120,7 @@ void main(int argc, char *argv[])
                                                         if(log_write_result(log_file, receive_result, inet_ntoa(dest_addr.sin_addr), u_get_cur_time_ms() - start_time_ms, packet_size, recv_buf->ttl) != 0)
                                                         {
                                                             log_diagnostics(log_error_code);
-                                                            stop_program();
+                                                            u_stop_program(program_error_code, log_error_code, &log_file);
                                                         }
                                                         break;
                                                     default://Ошибка получения пакета
@@ -129,7 +128,7 @@ void main(int argc, char *argv[])
                                                         {
                                                             log_diagnostics(log_error_code);
                                                         }
-                                                        stop_program();
+                                                        u_stop_program(program_error_code, log_error_code, &log_file);
                                                         break;
                                                 }
                                                 break;
@@ -151,7 +150,7 @@ void main(int argc, char *argv[])
                                         {
                                             log_diagnostics(log_error_code);
                                         }
-                                        stop_program();
+                                        u_stop_program(program_error_code, log_error_code, &log_file);
                                         break;
                                     case 0: //Пакет отправлен
                                         //Увеличиваем счетчик отправленных пакетов
@@ -164,7 +163,7 @@ void main(int argc, char *argv[])
                                                 if(log_write_result(log_file, receive_result, inet_ntoa(dest_addr.sin_addr), u_get_cur_time_ms() - start_time_ms, packet_size, recv_buf->ttl) != 0)
                                                 {
                                                     log_diagnostics(log_error_code);
-                                                    stop_program();
+                                                    u_stop_program(program_error_code, log_error_code, &log_file);
                                                 }
                                                 break;
                                             default: //Ошибка получения пакета
@@ -172,7 +171,7 @@ void main(int argc, char *argv[])
                                                 {
                                                     log_diagnostics(log_error_code);
                                                 }
-                                                stop_program();
+                                                u_stop_program(program_error_code, log_error_code, &log_file);
                                                 break;
                                         }
                                         break;
@@ -183,5 +182,5 @@ void main(int argc, char *argv[])
             }
     }
     //Завершение работы
-    stop_program();
+    u_stop_program(program_error_code, log_error_code, &log_file);
 }

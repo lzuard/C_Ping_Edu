@@ -4,8 +4,15 @@
 #include "../Headers/network.h" //Объявление сетевых функций
 #include "../Headers/utils.h"   //Вспомогательные функции
 
-//Функции
-//Функция получения Ip-адреса из доменного имени
+// Декларация функций
+
+// Декларация функция получения Ip-адреса из доменного имени
+/* Принимает параметры:
+   * char *host - адрес хоста;
+   * struct sockaddr_in *dest_addr - структура для хранения адреса назначения хоста;
+   * int *program_error_code - код ошибки лога.
+   Возвращает: 0 - при успехе; 1 - при ошибке.
+*/
 int nw_get_ip(char *host,struct sockaddr_in *dest_addr, int *program_error_code){
     struct hostent *ip_buf; //Вспомогательный буфер для временной записи адреса
 
@@ -24,7 +31,17 @@ int nw_get_ip(char *host,struct sockaddr_in *dest_addr, int *program_error_code)
         return 1;
     }
 }
-//Функция настройки сокета и получения ip-адреса
+
+// Декларация функции настройки сокета и получения ip-адреса
+/* Принимает параметры:
+   * char *host - адрес хоста;
+   * int ttl - TTL отправляемых пакетов;
+   * struct sockaddr_in *dest_addr - структура для хранения адреса назначения хоста;
+   * struct WSAData *wsaData - структура для инициализации сокета;
+   * SOCKET *ping_socket - сокет для отправки и приема пакетов;
+   * int *program_error_code - код ошибки лога.
+   Возвращает: 0 - если хост IP-адрес; 1 - если хост не IP-адрес; 2 - при ошибке.
+*/
 int nw_check_host(char *host, int ttl, struct sockaddr_in *dest_addr,struct WSAData *wsaData,SOCKET *ping_socket, int *program_error_code){
     unsigned long ip_address;   //Ip адрес
 
@@ -32,11 +49,11 @@ int nw_check_host(char *host, int ttl, struct sockaddr_in *dest_addr,struct WSAD
     if(WSAStartup(MAKEWORD(2,1), wsaData)==0)   //Init wsa to open socket
     {
         //Инициализация сокета
-        *ping_socket=WSASocket(AF_INET, SOCK_RAW, IPPROTO_ICMP, 0, 0, 0);   //init socket using wsa
+        *ping_socket=WSASocket(AF_INET, SOCK_RAW, IPPROTO_ICMP, 0, 0, 0);
         if(*ping_socket!=INVALID_SOCKET)    //Если сокет инициализирован
         {
             //Открытие сокета
-            if (setsockopt(*ping_socket, IPPROTO_IP, IP_TTL, (const char *) &ttl, sizeof(ttl)) != SOCKET_ERROR)     //open socket
+            if (setsockopt(*ping_socket, IPPROTO_IP, IP_TTL, (const char *) &ttl, sizeof(ttl)) != SOCKET_ERROR)
             {
                 ip_address = inet_addr(host);   // Получение адреса
                 if (ip_address != INADDR_NONE)      //Если адрес IPv4
@@ -44,15 +61,24 @@ int nw_check_host(char *host, int ttl, struct sockaddr_in *dest_addr,struct WSAD
                     dest_addr->sin_family = AF_INET;    //Устанавливаем тип адреса Ip
                     dest_addr->sin_addr.s_addr = ip_address;   //Устанавливаем адрес в структуру
                     return 0;
-                } else return 1; //Если сокет не открылся
+                } else return 1; //Адрес не IP
             }
         }
     }
     *program_error_code=101;
-    return 2;   //Адрес не IP
+    return 2;   //Если сокет не открылся
 }
 
-// Функция отправки ICMP пакета
+// Декларация функции отправки ICMP-пакета
+/* Принимает параметры:
+   * SOCKET ping_socket - сокет для отправки и приема пакетов;
+   * struct sockaddr_in dest_addr - структура для хранения адреса назначения хоста;
+   * struct ICMPHeader send_buf - буфер для отправляемого заголовка ICMP;
+   * int packet_size - размер ICMP пакета в байтах;
+   * int *program_error_code - код ошибки лога;
+   * int *bytes_sent - колличество отправленных байт.
+   Возвращает: 0 - при успехе; 1 - при ошибке.
+*/
 int nw_send_request(SOCKET ping_socket, struct sockaddr_in dest_addr, struct ICMPHeader send_buf, int packet_size, int *program_error_code, int *bytes_sent){
 
     // Размер пакета
@@ -61,7 +87,6 @@ int nw_send_request(SOCKET ping_socket, struct sockaddr_in dest_addr, struct ICM
     //Заполняем структуру заголовка ICMP
     send_buf.code = 0;
     send_buf.type = 8;  //ICMP эхо запрос
-    send_buf.code = 0;
     send_buf.checksum = 0;
     send_buf.id = (USHORT)GetCurrentProcessId();
     send_buf.seq = 0;
@@ -79,7 +104,16 @@ int nw_send_request(SOCKET ping_socket, struct sockaddr_in dest_addr, struct ICM
     else return 0;  //Пакет успешно отправлен
 }
 
-// Функция получения ICMP-пакета
+// Декларация функции получения ICMP-пакета
+/* Принимает параметры:
+   * SOCKET ping_socket - сокет для отправки и приема пакетов;
+   * struct sockaddr_in source_addr - структура для хранения адреса хоста отправителя;
+   * struct IPHeader *recv_buf - буфер для поулчаемого заголовка IP;
+   * int packet_size - размер ICMP пакета в байтах;
+   * int *program_error_code - код ошибки лога;
+   * int *result - результат расшифровки полученного ICMP пакета.
+   Возвращает: 0 - при успехе; 1 - при ошибке. TODO
+*/
 int nw_get_reply(SOCKET ping_socket,struct sockaddr_in source_addr, struct IPHeader *recv_buf,int packet_size, int *program_error_code, int *result)
 {
     //Декларация локальных переменных
@@ -98,8 +132,8 @@ int nw_get_reply(SOCKET ping_socket,struct sockaddr_in source_addr, struct IPHea
     //Получение ICMP-пакета
     while(1)
     {
-        FD_ZERO(&socket_descriptor);             //Инициализация набора файловых дескрипторов fdset
-        FD_SET(ping_socket, &socket_descriptor); //Устанавка бита для файлового дескриптора fd в наборе файловых дескрипторов fdset.
+        FD_ZERO(&socket_descriptor);             //Инициализация набора файловых дескрипторов fd_set
+        FD_SET(ping_socket, &socket_descriptor); //Устанавка бита для файлового дескриптора fd в наборе файловых дескрипторов fd_set.
 
         //Ожидание изменения данных на сокете
         switch(select(ping_socket+1, &socket_descriptor, 0, 0, &time_for_timout))

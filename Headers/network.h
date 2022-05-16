@@ -33,13 +33,13 @@ struct ICMPHeader
 {
     BYTE type;          // Тип ICMP-пакета
     BYTE code;          // Код ICMP-пакета
-    USHORT checksum;    // Контрольная ссума ICMP-пакета
+    USHORT checksum;    // Контрольная сумма ICMP-пакета
     USHORT id;          // Индификатор ICMP-пакета
     USHORT seq;         // Номер последовательности ICMP-пакета
     ULONG timestamp;    // Временная метка
 };
-//Декларация фунций
-//Функция получения Ip-адреса из доменного имени
+// Декларация фунций
+// Функция получения Ip-адреса из доменного имени
 int nw_get_ip(char *host,struct sockaddr_in *dest_addr, int *program_error_code);
 // Функция открытия сокета
 int nw_check_host(char *host, int ttl, struct sockaddr_in *dest_addr,struct WSAData *wsaData,SOCKET *ping_socket, int *program_error_code);

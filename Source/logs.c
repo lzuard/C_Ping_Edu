@@ -99,7 +99,7 @@ int log_write_error(FILE* log_file, int program_error_code, int* log_error_code)
             wrote=fprintf(log_file, "[] Program stopped because of unknown error has occurred\n");
             break;
     }
-    if(wrote==0)    // Ошибка записи в лог
+    if(wrote<0)    // Ошибка записи в лог
     {
       *log_error_code=(int)GetLastError();
       //printf("Debug-log_write_error- write error, exit code 1");
@@ -142,7 +142,7 @@ int log_write_result(FILE* logfile,int *log_error_code, int result, char* host, 
             wrote=fprintf(logfile,"Sent %d bytes to %s Got unknown ICMP packet\n",packet_size, host);
             break;
     }
-    if(wrote==0) // Ошибка записи в лог
+    if(wrote<0) // Ошибка записи в лог
     {
         *log_error_code=(int)GetLastError();
         //printf("Debug-log_write_error- write error, exit code 1");
@@ -163,7 +163,8 @@ void log_diagnostics(int log_error_code) //TODO: implement all windows codes
 {
     //printf("Debug-entered log_diagnostics with code %d", log_error_code);
     printf("Log error. Windows error code %d: ",log_error_code);
-    switch(log_error_code){ //Обработка типа ошибки
+    switch(log_error_code)
+    { //Обработка типа ошибки
         case 2:
             printf("Can't find the file\n");
             break;
